@@ -1,0 +1,80 @@
+---
+description: pagination, search, list
+globs: 
+alwaysApply: false
+---
+# Pagination Pattern Guide
+
+## Overview
+The project uses a standardized pagination pattern for all list/search endpoints. This guide explains how to implement paginated endpoints consistently across the application.
+
+## Core Components
+
+### PageResult Entity
+Located at [src/common/entities/page.entity.ts](mdc:src/common/entities/page.entity.ts):
+- Generic class that wraps any type of data
+- Handles pagination metadata and data rows
+- Provides static factory method `PageResult.of()`
+
+### Search DTO Pattern
+Example at [src/modules/sysBank/dto/search-bank.dto.ts](mdc:src/modules/sysBank/dto/search-bank.dto.ts):
+- Must include standard pagination fields:
+  ```typescript
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  pageNo: number = 1;
+
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  pageSize: number = 10;
+  ```
+- Use class-validator decorators for all fields
+- Use @IsOptional() for optional search parameters
+- Use @Type(() => Number) for numeric query parameters
+
+## Implementation Guidelines
+
+### Controller Layer
+- Use POST method for search endpoints
+- Accept search DTO in request body using @Body()
+- Return Promise<PageResult<T>>
+
+Example:
+```typescript
+@Post('search')
+async search(@Body() searchDto: SearchDto): Promise<PageResult<Entity>> {
+    return this.service.search(searchDto);
+}
+```
+
+### Service Layer
+- Use TypeORM Repository for database queries
+- Implement skip/take pagination
+- Calculate total pages
+- Return data using PageResult.of()
+
+Example:
+```typescript
+const [rows, total] = await repository.findAndCount({
+    where: conditions,
+    skip: (pageNo - 1) * pageSize,
+    take: pageSize,
+    order: { /* ... */ }
+});
+
+return PageResult.of(pageNo, pageSize, total, rows);
+```
+
+## Response Format
+All paginated responses follow this structure:
+```typescript
+{
+    "pageNo": number,     // Current page number
+    "pageSize": number,   // Items per page
+    "total": number,      // Total number of items
+    "pages": number,      // Total number of pages
+    "rows": T[]          // Array of items for current page
+}
+```

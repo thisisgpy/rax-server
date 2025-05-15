@@ -1,0 +1,114 @@
+---
+description: Technology stack and project architecture requirements
+globs: 
+alwaysApply: false
+---
+Read the [package.json](mdc:package.json) carefully. You must use the installed dependencies to complete the function development. When you must introduce new dependencies, you need to get my approval first.
+
+# Technology Stack and Architecture
+
+## Core Technologies
+- NestJS as the backend framework
+- TypeORM for database operations
+- MySQL as the database
+- Class Validator and Class Transformer for DTO validation and transformation
+
+## Project Structure
+The project follows a modular architecture with the following key directories:
+
+### Common Layer
+Located in [src/common](mdc:src/common):
+- Shared utilities, entities, and providers
+- Common entities like [page.entity.ts](mdc:src/common/entities/page.entity.ts) for pagination
+
+### Entity Layer
+Located in [src/entities](mdc:src/entities):
+- TypeORM entities following the naming pattern: `sys*.entity.ts`
+- Example: [sysBank.entity.ts](mdc:src/entities/sysBank.entity.ts)
+
+### Module Layer
+Located in [src/modules](mdc:src/modules):
+Each module contains:
+- `*.module.ts` - Module definition and dependencies
+- `*.controller.ts` - REST endpoints
+- `*.service.ts` - Business logic
+- `dto/*.dto.ts` - Data Transfer Objects
+
+Example module structure:
+```
+src/modules/sysBank/
+├── dto/
+│   └── search-bank.dto.ts
+├── sysBank.module.ts
+├── sysBank.controller.ts
+└── sysBank.service.ts
+```
+
+## Code Conventions
+
+### DTO Patterns
+- Use class-validator decorators for validation
+- Use class-transformer for type conversion
+- Default values for pagination:
+  - pageNo: 1 (minimum 1)
+  - pageSize: 10 (minimum 1)
+
+### REST API Conventions
+- Base URL pattern: `/api/v1/{module}`
+- Search endpoints use POST method with request body
+- Response format uses PageResult for paginated data:
+  ```typescript
+  {
+    pageNo: number;    // Current page
+    pageSize: number;  // Items per page
+    total: number;     // Total records
+    pages: number;     // Total pages
+    rows: T[];        // Data array
+  }
+  ```
+
+### Database Conventions
+- Entity columns use snake_case in database
+- Entity properties use camelCase in TypeScript
+- Use TypeORM decorators for column definitions
+- Always include column comments
+
+### Search Implementation Pattern
+- Use TypeORM Repository pattern
+- Support exact match and fuzzy search (LIKE)
+- Implement proper pagination with skip/take
+- Order results consistently (e.g., by code ASC)
+
+### Organization Code Structure
+- Organization codes follow a hierarchical 4-digit segment pattern
+- Each 4 digits represent one level in the organization hierarchy
+- Examples:
+  - "0001" - First level organization
+  - "00010001" - Second level under "0001"
+  - "000100010001" - Third level under "00010001"
+
+### Database Operations
+- All write operations must use transactions
+- Entity operations should validate field existence and correctness
+- Use TypeORM's Repository pattern for database access
+- Proper error handling with custom exceptions
+
+### Date/Time Formats
+- Dates: yyyy-MM-dd
+- Datetimes: yyyy-MM-dd HH:mm:ss
+
+### Naming Conventions
+- File names use camelCase
+- Classes use PascalCase
+- Methods and variables use camelCase
+- Database columns use snake_case
+- DTOs follow the pattern: purpose-entity.dto.ts (e.g., create-org.dto.ts)
+
+### ID Generation
+- All IDs are generated using Snowflake algorithm
+- Snowflake is provided as a NestJS provider
+- IDs are string type in the system
+
+
+
+
