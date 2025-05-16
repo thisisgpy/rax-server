@@ -7,6 +7,53 @@ Read the [package.json](mdc:package.json) carefully. You must use the installed 
 
 # Technology Stack and Architecture
 
+This project is a NestJS-based backend service with TypeORM for database management.
+
+## Entity Structure
+- Entities are stored in [src/entities](mdc:src/entities)
+- All entities must follow these patterns:
+  - Use TypeORM decorators (@Entity, @Column, etc.)
+  - Include Swagger documentation (@ApiProperty) for all fields
+  - Use Chinese descriptions in comments and Swagger docs
+  - Follow naming convention: PascalCase for entity names (e.g., SysOrg, SysDict)
+  - Include proper column metadata (type, length, nullable, etc.)
+
+## Common Entity Fields
+Standard fields that should be included in most entities:
+- `id`: string (varchar) - Primary key
+- `createTime`: Date - Creation timestamp
+- `createBy`: string - Creator username
+- `updateTime`: Date - Last update timestamp
+- `updateBy`: string - Last updater username
+
+## Swagger Documentation
+All entities must include:
+- @ApiProperty decorator for each field
+- Description in Chinese
+- Proper type information
+- Length constraints where applicable
+- Required/optional field marking
+- Default values where applicable
+
+## Example Entity Structure
+```typescript
+@Entity('table_name')
+export class EntityName {
+    @ApiProperty({
+        description: '字段中文描述',
+        type: String,
+        maxLength: 64  // if applicable
+    })
+    @Column({
+        name: 'column_name',
+        type: 'varchar',
+        length: 64,    // if applicable
+        comment: '字段中文描述'
+    })
+    fieldName: string;
+}
+```
+
 ## Core Technologies
 - NestJS as the backend framework
 - TypeORM for database operations
