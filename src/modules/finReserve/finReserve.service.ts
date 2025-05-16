@@ -19,12 +19,15 @@ import { SearchReserveDto } from './dto/search-reserve.dto';
 import { ReserveListItemDto } from './dto/reserve-list.dto';
 import { PageResult } from '../../common/entities/page.entity';
 import { CodeUtil } from '../../common/utils/code.util';
+import { LoggerService } from '../../common/logger/logger.service';
 
 /**
  * 融资储备服务
  */
 @Injectable()
 export class FinReserveService {
+  private readonly CONTEXT = 'FinReserveService';
+
   constructor(
     @InjectRepository(FinReserve)
     private readonly finReserveRepository: Repository<FinReserve>,
@@ -39,6 +42,7 @@ export class FinReserveService {
     private readonly snowflake: Snowflake,
     @Inject('UserContext')
     private readonly userContext: UserContext,
+    private readonly logger: LoggerService,
   ) {}
 
   /**
@@ -151,12 +155,14 @@ export class FinReserveService {
   }
 
   /**
-    * 创建储备融资记录
-    * 包含基本信息、成本构成和进度控制信息
-    * @param createReserveDto 创建储备融资的数据传输对象
-    * @returns 创建的储备融资实体
-    */
+   * 创建储备融资记录
+   * 包含基本信息、成本构成和进度控制信息
+   * @param createReserveDto 创建储备融资的数据传输对象
+   * @returns 创建的储备融资实体
+   */
   async create(createReserveDto: CreateReserveDto): Promise<FinReserve> {
+    this.logger.info(this.CONTEXT, `开始创建储备融资记录，融资主体: ${createReserveDto.orgId}, 金融机构: ${createReserveDto.financialInstitution}`);
+    
     const reserveId = this.snowflake.nextId();
 
     // 准备所有实体对象
@@ -176,9 +182,20 @@ export class FinReserveService {
       await queryRunner.manager.save(progresses);
 
       await queryRunner.commitTransaction();
+      
+      this.logger.info(this.CONTEXT, {
+        message: '储备融资记录创建成功',
+        reserveId: reserve.id,
+        code: reserve.code,
+        fundingAmount: reserve.fundingAmount,
+        costsCount: costs.length,
+        progressCount: progresses.length
+      });
+      
       return reserve;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(this.CONTEXT, err, '创建储备融资记录失败');
       throw err;
     } finally {
       await queryRunner.release();
@@ -206,23 +223,21 @@ export class FinReserveService {
    *    - 删除并重建成本明细(fin_reserve_costs)
    *    - 删除并重建进度控制记录(fin_reserve_progress)
    * 
-   * 异常处理:
-   * - NotFoundException: 当储备融资记录不存在时抛出
-   * - RaxBizException: 当记录状态非待放款或试图修改已有实际日期的进度时抛出
-   * - 其他异常将触发事务回滚
-   * 
-   * @param updateReserveDto 更新储备融资的数据传输对象，包含基本信息、成本明细和进度控制信息
+   * @param updateReserveDto 更新储备融资的数据传输对象
    * @returns {Promise<boolean>} 更新成功返回true
-   * @throws {RaxBizException} 当储备融资记录不存在时
-   * @throws {RaxBizException} 当记录状态非待放款或试图修改已有实际日期的进度时
+   * @throws {RaxBizException} 当储备融资记录不存在或状态不允许更新时
    */
   async update(updateReserveDto: UpdateReserveDto): Promise<boolean> {
+    this.logger.info(this.CONTEXT, `开始更新储备融资记录，ID: ${updateReserveDto.id}`);
+
     // 先检查记录是否存在，并加载关联的进度信息
     const existingReserve = await this.checkReserveExists(updateReserveDto.id);
-
+    
     // 检查状态是否为待放款
     if (existingReserve.status !== FinReserveStatus.PENDING) {
-      throw new RaxBizException('只有待放款状态的储备融资可以被编辑');
+      const errMsg = '只有待放款状态的储备融资可以被编辑';
+      this.logger.warn(this.CONTEXT, `更新储备融资失败: ${errMsg}, 当前状态: ${existingReserve.status}`);
+      throw new RaxBizException(errMsg);
     }
 
     // 获取现有的进度记录
@@ -235,7 +250,9 @@ export class FinReserveService {
     for (const newProgress of updateReserveDto.progressList) {
       const existingProgress = progressMap.get(newProgress.progressName);
       if (existingProgress?.actualDate) {
-        throw new RaxBizException(`进度"${newProgress.progressName}"已填写实际日期，不允许编辑`);
+        const errMsg = `进度"${newProgress.progressName}"已填写实际日期，不允许编辑`;
+        this.logger.warn(this.CONTEXT, `更新储备融资失败: ${errMsg}`);
+        throw new RaxBizException(errMsg);
       }
     }
 
@@ -258,9 +275,19 @@ export class FinReserveService {
       await queryRunner.manager.save(newProgresses);
 
       await queryRunner.commitTransaction();
+      
+      this.logger.info(this.CONTEXT, {
+        message: '储备融资记录更新成功',
+        reserveId: updatedReserve.id,
+        fundingAmountChange: updatedReserve.fundingAmount - existingReserve.fundingAmount,
+        newCostsCount: newCosts.length,
+        newProgressCount: newProgresses.length
+      });
+      
       return true;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(this.CONTEXT, err, '更新储备融资记录失败');
       throw err;
     } finally {
       await queryRunner.release();
@@ -276,22 +303,22 @@ export class FinReserveService {
    * 2. 取消后状态不可逆
    * 3. 必须提供取消原因，记录在进度报告中
    * 
-   * 事务控制:
-   * - 使用事务确保状态更新和进度报告的原子性
-   * - 如果更新过程中发生错误，事务会回滚
-   * 
    * @param id 储备融资ID
    * @param cancelReason 取消原因
    * @returns {Promise<boolean>} 取消成功返回true
    * @throws {RaxBizException} 当储备融资记录不存在或状态不允许取消时
    */
   async cancel(id: string, cancelReason: string): Promise<boolean> {
+    this.logger.info(this.CONTEXT, `开始取消储备融资记录，ID: ${id}`);
+
     // 查询现有记录
     const existingReserve = await this.checkReserveExists(id);
 
     // 检查状态是否为待放款
     if (existingReserve.status !== FinReserveStatus.PENDING) {
-      throw new RaxBizException('只有待放款状态的储备融资可以被取消');
+      const errMsg = '只有待放款状态的储备融资可以被取消';
+      this.logger.warn(this.CONTEXT, `取消储备融资失败: ${errMsg}, 当前状态: ${existingReserve.status}`);
+      throw new RaxBizException(errMsg);
     }
 
     // 更新状态为已取消
@@ -318,10 +345,19 @@ export class FinReserveService {
       await queryRunner.manager.save(FinReserve, existingReserve);
       await queryRunner.manager.save(FinReserveProgressReport, progressReport);
       await queryRunner.commitTransaction();
+      
+      this.logger.info(this.CONTEXT, {
+        message: '储备融资记录取消成功',
+        reserveId: id,
+        cancelReason,
+        operator: this.userContext.getUsername()
+      });
+      
       return true;
     } catch (err) {
       // 发生错误时回滚事务
       await queryRunner.rollbackTransaction();
+      this.logger.error(this.CONTEXT, err, '取消储备融资失败');
       throw new RaxBizException('取消储备融资失败');
     } finally {
       // 释放查询运行器
@@ -342,21 +378,21 @@ export class FinReserveService {
    *    - 进度记录(fin_reserve_progress)
    *    - 进度报告(fin_reserve_progress_report)
    * 
-   * 事务控制:
-   * - 使用事务确保所有相关数据的删除操作的原子性
-   * - 任何删除操作失败都会导致事务回滚
-   * 
    * @param id 储备融资ID
    * @returns {Promise<boolean>} 删除成功返回true
    * @throws {RaxBizException} 当储备融资记录不存在或状态不允许删除时
    */
   async delete(id: string): Promise<boolean> {
+    this.logger.info(this.CONTEXT, `开始删除储备融资记录，ID: ${id}`);
+
     // 查询现有记录
     const existingReserve = await this.checkReserveExists(id);
 
     // 检查状态是否允许删除
     if (![FinReserveStatus.PENDING, FinReserveStatus.CANCELLED].includes(existingReserve.status)) {
-      throw new RaxBizException('只有待放款和已取消状态的储备融资可以被删除');
+      const errMsg = '只有待放款和已取消状态的储备融资可以被删除';
+      this.logger.warn(this.CONTEXT, `删除储备融资失败: ${errMsg}, 当前状态: ${existingReserve.status}`);
+      throw new RaxBizException(errMsg);
     }
 
     // 开启事务
@@ -379,10 +415,19 @@ export class FinReserveService {
 
       // 提交事务
       await queryRunner.commitTransaction();
+      
+      this.logger.info(this.CONTEXT, {
+        message: '储备融资记录删除成功',
+        reserveId: id,
+        status: existingReserve.status,
+        operator: this.userContext.getUsername()
+      });
+      
       return true;
     } catch (err) {
       // 发生错误时回滚事务
       await queryRunner.rollbackTransaction();
+      this.logger.error(this.CONTEXT, err, '删除储备融资失败');
       throw new RaxBizException('删除储备融资失败');
     } finally {
       // 释放查询运行器
@@ -474,23 +519,31 @@ export class FinReserveService {
    * @throws {RaxBizException} 当进度记录不存在或已完成时
    */
   async confirmProgress(confirmProgressDto: ConfirmProgressDto): Promise<boolean> {
+    this.logger.info(this.CONTEXT, `开始确认进度完成，进度ID: ${confirmProgressDto.id}`);
+
     // 查询进度记录
     const progress = await this.finReserveProgressRepository.findOne({
       where: { id: confirmProgressDto.id }
     });
 
     if (!progress) {
-      throw new RaxBizException(`进度记录 ${confirmProgressDto.id} 不存在`);
+      const errMsg = `进度记录 ${confirmProgressDto.id} 不存在`;
+      this.logger.warn(this.CONTEXT, errMsg);
+      throw new RaxBizException(errMsg);
     }
 
     // 检查是否已完成
     if (progress.actualDate) {
-      throw new RaxBizException('该进度已完成，不允许重复确认');
+      const errMsg = '该进度已完成，不允许重复确认';
+      this.logger.warn(this.CONTEXT, `确认进度失败: ${errMsg}`);
+      throw new RaxBizException(errMsg);
     }
 
     // 检查实际完成日期是否有效
     if (!DateUtil.isValidDate(confirmProgressDto.actualDate)) {
-      throw new RaxBizException('实际完成日期格式无效');
+      const errMsg = '实际完成日期格式无效';
+      this.logger.warn(this.CONTEXT, `确认进度失败: ${errMsg}`);
+      throw new RaxBizException(errMsg);
     }
 
     // 计算延期天数
@@ -514,10 +567,22 @@ export class FinReserveService {
       // 在事务中执行更新
       await queryRunner.manager.save(FinReserveProgress, progress);
       await queryRunner.commitTransaction();
+      
+      this.logger.info(this.CONTEXT, {
+        message: '进度确认完成',
+        progressId: progress.id,
+        reserveId: progress.reserveId,
+        progressName: progress.progressName,
+        planDate: progress.planDate,
+        actualDate: progress.actualDate,
+        delayDays
+      });
+      
       return true;
     } catch (err) {
       // 发生错误时回滚事务
       await queryRunner.rollbackTransaction();
+      this.logger.error(this.CONTEXT, err, '确认进度完成失败');
       throw new RaxBizException('确认进度完成失败');
     } finally {
       // 释放查询运行器
@@ -551,10 +616,12 @@ export class FinReserveService {
    * 记录储备融资进展情况
    * 
    * @param createProgressReportDto 进度报告数据
-   * @returns {Promise<FinReserveProgressReport>} 创建的进度报告
+   * @returns {Promise<boolean>} 创建成功返回true
    * @throws {RaxBizException} 当储备融资记录不存在时
    */
   async createProgressReport(createProgressReportDto: CreateProgressReportDto): Promise<boolean> {
+    this.logger.info(this.CONTEXT, `开始提交进度报告，储备融资ID: ${createProgressReportDto.reserveId}`);
+
     // 先检查储备融资记录是否存在
     await this.checkReserveExists(createProgressReportDto.reserveId);
 
@@ -576,10 +643,19 @@ export class FinReserveService {
       // 在事务中保存进度报告
       await queryRunner.manager.save(FinReserveProgressReport, progressReport);
       await queryRunner.commitTransaction();
+      
+      this.logger.info(this.CONTEXT, {
+        message: '进度报告提交成功',
+        reportId: progressReport.id,
+        reserveId: progressReport.reserveId,
+        operator: progressReport.createBy
+      });
+      
       return true;
     } catch (err) {
       // 发生错误时回滚事务
       await queryRunner.rollbackTransaction();
+      this.logger.error(this.CONTEXT, err, '提交进度报告失败');
       throw new RaxBizException('提交进度报告失败');
     } finally {
       // 释放查询运行器

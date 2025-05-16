@@ -11,6 +11,7 @@ import { AuthMiddleware } from './common/middleware/auth.middleware';
 import { SysDictModule } from './modules/sysDict/sysDict.module';
 import { SysBankModule } from './modules/sysBank/sysBank.module';
 import { FinReserveModule } from './modules/finReserve/finReserve.module';
+import { LoggerModule } from './common/logger/logger.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { FinReserveModule } from './modules/finReserve/finReserve.module';
     SysDictModule,
     SysBankModule,
     FinReserveModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
