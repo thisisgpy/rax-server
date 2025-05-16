@@ -10,6 +10,7 @@ import { SnowflakeModule } from './common/providers/snowflake.module';
 import { AuthMiddleware } from './common/middleware/auth.middleware';
 import { SysDictModule } from './modules/sysDict/sysDict.module';
 import { SysBankModule } from './modules/sysBank/sysBank.module';
+import { FinReserveModule } from './modules/finReserve/finReserve.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SysBankModule } from './modules/sysBank/sysBank.module';
     SysOrgModule,
     SysDictModule,
     SysBankModule,
+    FinReserveModule,
   ],
   controllers: [AppController],
   providers: [AppService],

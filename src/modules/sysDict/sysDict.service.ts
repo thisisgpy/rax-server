@@ -13,7 +13,7 @@ import { QueryDictDto } from './dto/query-dict.dto';
 import { PageResult } from '../../common/entities/page.entity';
 import { CreateDictItemDto } from './dto/create-dict-item.dto';
 import { UpdateDictItemDto } from './dto/update-dict-item.dto';
-import { DictItemTreeDto, DictItemTreeResult } from './dto/dict-item-tree.dto';
+import { DictItemTreeDto } from './dto/dict-item-tree.dto';
 
 @Injectable()
 export class SysDictService {

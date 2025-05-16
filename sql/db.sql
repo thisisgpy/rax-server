@@ -74,13 +74,16 @@ CREATE TABLE
     `fin_reserve`
 (
     `id`          VARCHAR(64) COMMENT '储备融资 ID',
+    `code`        VARCHAR(64) COMMENT '储备融资编码.编码规则: RF 开头，后面跟 yyMMddHHmmss',
     `org_id`      VARCHAR(64) COMMENT '融资主体 ID',
     `financial_institution` VARCHAR(64) COMMENT '金融机构',
     `funding_mode` VARCHAR(64) COMMENT '融资方式',
     `funding_amount` BIGINT(20) COMMENT '融资金额，以分计算',
     `expected_disbursement_date` DATE COMMENT '预计放款日期',
     `loan_renewal_from_id` VARCHAR(64) COMMENT '续贷来源 ID.0 表示非续贷',
+    `leader_name` VARCHAR(64) COMMENT '负责人名称',
     `leader_id` VARCHAR(64) COMMENT '负责人 ID',
+    `executor_name` VARCHAR(64) COMMENT '执行人名称',
     `executor_id` VARCHAR(64) COMMENT '执行人 ID',
     `combined_ratio` DECIMAL(6, 2) COMMENT '综合成本率',
     `additional_costs` BIGINT(20) COMMENT '额外成本，以分计算',
