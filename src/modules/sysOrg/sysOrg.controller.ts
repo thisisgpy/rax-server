@@ -5,16 +5,28 @@ import { CreateOrgDto } from './dto/create-org.dto';
 import { SysOrg } from '../../entities/sysOrg.entity';
 import { UpdateOrgDto } from './dto/update-org.dto';
 import { OrgTreeDto } from './dto/org-tree.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 
+@ApiTags('组织管理')
 @Controller('api/v1/org')
 export class SysOrgController {
     constructor(private readonly sysOrgService: SysOrgService) {}
 
-    /**
-     * 生成组织编码
-     * @param parentId 父级组织ID
-     * @returns 组织编码
-     */
+    @ApiOperation({
+        summary: '生成组织编码',
+        description: '根据父级组织ID生成新的组织编码'
+    })
+    @ApiQuery({
+        name: 'parentId',
+        description: '父级组织ID',
+        type: String,
+        required: true
+    })
+    @ApiResponse({
+        status: 200,
+        description: '生成成功',
+        type: String
+    })
     @Get('codegen')
     async generateOrgCode(@Query('parentId') parentId: string): Promise<string> {
         if (!parentId) {
@@ -23,60 +35,100 @@ export class SysOrgController {
         return await this.sysOrgService.generateOrgCode(parentId);
     }
 
-    /**
-     * 创建组织
-     * @param createOrgDto 创建组织的数据
-     * @returns 创建的组织
-     */
+    @ApiOperation({
+        summary: '创建组织',
+        description: '创建新的组织'
+    })
+    @ApiResponse({
+        status: 200,
+        description: '创建成功',
+        type: SysOrg
+    })
     @Post('create')
     async create(@Body() createOrgDto: CreateOrgDto): Promise<SysOrg> {
         return await this.sysOrgService.create(createOrgDto);
     }
 
-    /**
-     * 更新组织
-     * @param updateOrgDto 更新组织的数据
-     * @returns 更新后的组织
-     */
+    @ApiOperation({
+        summary: '更新组织',
+        description: '更新组织信息'
+    })
+    @ApiResponse({
+        status: 200,
+        description: '更新成功',
+        type: Boolean
+    })
     @Post('edit')
     async edit(@Body() updateOrgDto: UpdateOrgDto): Promise<boolean> {
         return await this.sysOrgService.update(updateOrgDto);
     }
 
-    /** 
-     * 删除组织
-     * @param id 组织ID
-     * @returns 删除是否成功
-     */
+    @ApiOperation({
+        summary: '删除组织',
+        description: '根据ID删除组织'
+    })
+    @ApiParam({
+        name: 'id',
+        description: '组织ID',
+        type: String
+    })
+    @ApiResponse({
+        status: 200,
+        description: '删除成功',
+        type: Boolean
+    })
     @Get('remove/:id')
     async remove(@Param('id') id: string): Promise<boolean> {
         return await this.sysOrgService.delete(id);
     }
 
-    /**
-     * 获取组织树
-     * @param id 组织ID
-     * @returns 组织树
-     */
+    @ApiOperation({
+        summary: '获取组织树',
+        description: '根据组织ID获取其下级组织树结构'
+    })
+    @ApiParam({
+        name: 'id',
+        description: '组织ID',
+        type: String
+    })
+    @ApiResponse({
+        status: 200,
+        description: '获取成功',
+        type: OrgTreeDto
+    })
     @Get('tree/:id')
     async getOrgTree(@Param('id') id: string): Promise<OrgTreeDto> {
         return await this.sysOrgService.getOrgTree(id);
     }
 
-    /**
-     * 根据组织ID获取组织
-     * @param id 组织ID
-     * @returns 组织
-     */
+    @ApiOperation({
+        summary: '获取组织详情',
+        description: '根据组织ID获取组织详细信息'
+    })
+    @ApiParam({
+        name: 'id',
+        description: '组织ID',
+        type: String
+    })
+    @ApiResponse({
+        status: 200,
+        description: '获取成功',
+        type: SysOrg
+    })
     @Get('get/:id')
     async getOrgById(@Param('id') id: string): Promise<SysOrg> {
         return await this.sysOrgService.getOrgById(id);
     }
 
-    /**
-     * 获取所有组织树
-     * @returns 组织树数组
-     */
+    @ApiOperation({
+        summary: '获取所有组织树',
+        description: '获取所有组织的树形结构'
+    })
+    @ApiResponse({
+        status: 200,
+        description: '获取成功',
+        type: [OrgTreeDto]
+    })
     @Get('trees')
     async getOrgTrees(): Promise<OrgTreeDto[]> {
         return await this.sysOrgService.getOrgTrees();

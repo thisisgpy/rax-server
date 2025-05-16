@@ -1,7 +1,13 @@
 import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('sys_org')
 export class SysOrg {
+    @ApiProperty({
+        description: '组织ID',
+        type: String,
+        maxLength: 64
+    })
     @PrimaryColumn({
         name: 'id',
         type: 'varchar',
@@ -10,6 +16,11 @@ export class SysOrg {
     })
     id: string;
 
+    @ApiProperty({
+        description: '组织编码',
+        type: String,
+        maxLength: 64
+    })
     @Column({
         name: 'code',
         type: 'varchar',
@@ -18,6 +29,11 @@ export class SysOrg {
     })
     code: string;
 
+    @ApiProperty({
+        description: '组织名称',
+        type: String,
+        maxLength: 64
+    })
     @Column({
         name: 'name',
         type: 'varchar',
@@ -26,6 +42,11 @@ export class SysOrg {
     })
     name: string;
 
+    @ApiProperty({
+        description: '组织名称简称',
+        type: String,
+        maxLength: 64
+    })
     @Column({
         name: 'name_abbr',
         type: 'varchar',
@@ -34,6 +55,12 @@ export class SysOrg {
     })
     nameAbbr: string;
 
+    @ApiProperty({
+        description: '组织备注',
+        type: String,
+        maxLength: 128,
+        required: false
+    })
     @Column({
         name: 'comment',
         type: 'varchar',
@@ -43,6 +70,12 @@ export class SysOrg {
     })
     comment: string;
 
+    @ApiProperty({
+        description: '父级组织ID',
+        type: String,
+        maxLength: 64,
+        default: '0'
+    })
     @Column({
         name: 'parent_id',
         type: 'varchar',
@@ -52,6 +85,10 @@ export class SysOrg {
     })
     parentId: string;
 
+    @ApiProperty({
+        description: '创建时间',
+        type: Date
+    })
     @CreateDateColumn({
         name: 'create_time',
         type: 'timestamp',
@@ -59,6 +96,11 @@ export class SysOrg {
     })
     createTime: Date;
 
+    @ApiProperty({
+        description: '创建人',
+        type: String,
+        maxLength: 32
+    })
     @Column({
         name: 'create_by',
         type: 'varchar',
@@ -67,6 +109,10 @@ export class SysOrg {
     })
     createBy: string;
 
+    @ApiProperty({
+        description: '更新时间',
+        type: Date
+    })
     @UpdateDateColumn({
         name: 'update_time',
         type: 'timestamp',
@@ -74,6 +120,12 @@ export class SysOrg {
     })
     updateTime: Date;
 
+    @ApiProperty({
+        description: '更新人',
+        type: String,
+        maxLength: 32,
+        required: false
+    })
     @Column({
         name: 'update_by',
         type: 'varchar',
