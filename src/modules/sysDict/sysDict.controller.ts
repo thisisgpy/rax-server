@@ -9,7 +9,8 @@ import { CreateDictItemDto } from './dto/create-dict-item.dto';
 import { SysDictItem } from '../../entities/sysDictItem.entity';
 import { UpdateDictItemDto } from './dto/update-dict-item.dto';
 import { DictItemTreeDto, DictItemTreeResult } from './dto/dict-item-tree.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiRaxResponse } from '../../common/decorators/api-response.decorator';
 
 @ApiTags('数据字典管理')
 @Controller('api/v1/dict')
@@ -20,8 +21,7 @@ export class SysDictController {
         summary: '创建数据字典',
         description: '创建一个新的数据字典'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '创建成功',
         type: SysDict
     })
@@ -34,8 +34,7 @@ export class SysDictController {
         summary: '更新数据字典',
         description: '根据ID更新数据字典信息'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '更新成功',
         type: SysDict
     })
@@ -52,9 +51,9 @@ export class SysDictController {
         name: 'id',
         description: '字典ID'
     })
-    @ApiResponse({
-        status: 200,
-        description: '删除成功'
+    @ApiRaxResponse({
+        description: '删除成功',
+        type: Boolean
     })
     @Get('remove/:id')
     async remove(@Param('id') id: string): Promise<void> {
@@ -69,8 +68,7 @@ export class SysDictController {
         name: 'id',
         description: '字典ID'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '获取成功',
         type: SysDict
     })
@@ -83,8 +81,7 @@ export class SysDictController {
         summary: '分页查询数据字典',
         description: '根据条件分页查询数据字典列表'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '查询成功',
         type: PageResult<SysDict>
     })
@@ -97,8 +94,7 @@ export class SysDictController {
         summary: '创建字典项',
         description: '为指定数据字典创建字典项'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '创建成功',
         type: SysDictItem
     })
@@ -111,8 +107,7 @@ export class SysDictController {
         summary: '更新字典项',
         description: '根据ID更新字典项信息'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '更新成功',
         type: SysDictItem
     })
@@ -129,8 +124,7 @@ export class SysDictController {
         name: 'id',
         description: '字典项ID'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '获取成功',
         type: SysDictItem
     })
@@ -147,9 +141,9 @@ export class SysDictController {
         name: 'id',
         description: '字典项ID'
     })
-    @ApiResponse({
-        status: 200,
-        description: '删除成功'
+    @ApiRaxResponse({
+        description: '删除成功',
+        type: Boolean
     })
     @Get('item/remove/:id')
     async removeDictItem(@Param('id') id: string): Promise<void> {
@@ -158,29 +152,28 @@ export class SysDictController {
 
     @ApiOperation({
         summary: '获取字典项树形结构',
-        description: '根据字典ID获取字典项的树形结构'
+        description: '根据字典编码获取字典项的树形结构'
     })
     @ApiParam({
-        name: 'id',
-        description: '字典ID'
+        name: 'code',
+        description: '字典编码',
+        type: String
     })
-    @ApiQuery({
+    @ApiParam({
         name: 'onlyEnabled',
         description: '是否只返回启用的项',
-        required: false,
         type: Boolean
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '获取成功',
         type: DictItemTreeDto
     })
-    @Get('item/tree/:id')
-    async findDictItemTreeById(
-        @Param('id') id: string,
-        @Query('onlyEnabled') onlyEnabled?: string
+    @Get('item/tree/:code/:onlyEnabled')
+    async findDictItemTreeByCode(
+        @Param('code') code: string,
+        @Param('onlyEnabled') onlyEnabled: boolean = true
     ): Promise<DictItemTreeDto> {
-        const showOnlyEnabled = onlyEnabled === undefined ? true : onlyEnabled === 'true';
-        return await this.sysDictService.findDictItemTreeById(id, showOnlyEnabled);
+        const showOnlyEnabled = onlyEnabled;
+        return await this.sysDictService.findDictItemTreeByCode(code, showOnlyEnabled);
     }
 } 

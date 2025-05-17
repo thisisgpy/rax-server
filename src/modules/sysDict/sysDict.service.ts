@@ -491,4 +491,24 @@ export class SysDictService {
         root.children = children;
         return root;
     }
+
+    /**
+     * 根据字典编码获取字典项树形结构
+     * @param code 字典编码
+     * @param onlyEnabled 是否只返回启用的项
+     * @returns 字典项树形结构
+     */
+    async findDictItemTreeByCode(code: string, onlyEnabled: boolean): Promise<DictItemTreeDto> {
+        // 先通过编码查询字典
+        const dict = await this.sysDictRepository.findOne({
+            where: { code }
+        });
+
+        if (!dict) {
+            throw new RaxBizException(`字典编码 ${code} 不存在`);
+        }
+
+        // 复用原有的通过ID查询的逻辑
+        return this.findDictItemTreeById(dict.id, onlyEnabled);
+    }
 } 

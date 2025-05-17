@@ -13,7 +13,8 @@ import { SearchReserveDto } from './dto/search-reserve.dto';
 import { ReserveListItemDto } from './dto/reserve-list.dto';
 import { PageResult } from '../../common/entities/page.entity';
 import { ConfigService } from '../../common/config/config.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import { ApiRaxResponse } from 'src/common/decorators/api-response.decorator';
 
 @ApiTags('储备融资')
 @Controller('api/v1/reserve')
@@ -25,8 +26,7 @@ export class FinReserveController {
 
   @ApiOperation({ summary: '创建储备融资' })
   @ApiBody({ type: CreateReserveDto })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '创建成功',
     type: FinReserve
   })
@@ -37,8 +37,7 @@ export class FinReserveController {
 
   @ApiOperation({ summary: '更新储备融资' })
   @ApiBody({ type: UpdateReserveDto })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '更新成功',
     type: Boolean
   })
@@ -49,8 +48,7 @@ export class FinReserveController {
 
   @ApiOperation({ summary: '取消储备融资' })
   @ApiBody({ type: CancelReserveDto })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '取消成功',
     type: Boolean
   })
@@ -69,8 +67,7 @@ export class FinReserveController {
     required: true,
     type: String
   })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '删除成功',
     type: Boolean
   })
@@ -86,8 +83,7 @@ export class FinReserveController {
     required: true,
     type: String
   })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '查询成功',
     type: ReserveDetailResponseDto
   })
@@ -98,8 +94,7 @@ export class FinReserveController {
 
   @ApiOperation({ summary: '确认进度完成' })
   @ApiBody({ type: ConfirmProgressDto })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '确认成功',
     type: Boolean
   })
@@ -115,10 +110,10 @@ export class FinReserveController {
     required: true,
     type: String
   })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '查询成功',
-    type: [FinReserveProgress]
+    type: FinReserveProgress,
+    isArray: true
   })
   @Get('progress/list/:id')
   async findProgressList(@Param('id') id: string): Promise<FinReserveProgress[]> {
@@ -127,8 +122,7 @@ export class FinReserveController {
 
   @ApiOperation({ summary: '提交进度报告' })
   @ApiBody({ type: CreateProgressReportDto })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '提交成功',
     type: Boolean
   })
@@ -146,10 +140,10 @@ export class FinReserveController {
     required: true,
     type: String
   })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '查询成功',
-    type: [FinReserveProgressReport]
+    type: FinReserveProgressReport,
+    isArray: true
   })
   @Get('progress/report/list/:id')
   async findProgressReports(@Param('id') id: string): Promise<FinReserveProgressReport[]> {
@@ -158,8 +152,7 @@ export class FinReserveController {
 
   @ApiOperation({ summary: '分页搜索储备融资' })
   @ApiBody({ type: SearchReserveDto })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '查询成功',
     type: PageResult<ReserveListItemDto>
   })
@@ -169,10 +162,10 @@ export class FinReserveController {
   }
 
   @ApiOperation({ summary: '获取进度步骤配置' })
-  @ApiResponse({
-    status: 200,
+  @ApiRaxResponse({
     description: '查询成功',
-    type: [String]
+    type: String,
+    isArray: true
   })
   @Get('progress/steps')
   async getProgressSteps(): Promise<string[]> {

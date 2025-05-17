@@ -5,7 +5,8 @@ import { CreateOrgDto } from './dto/create-org.dto';
 import { SysOrg } from '../../entities/sysOrg.entity';
 import { UpdateOrgDto } from './dto/update-org.dto';
 import { OrgTreeDto } from './dto/org-tree.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiRaxResponse } from '../../common/decorators/api-response.decorator';
 
 @ApiTags('组织管理')
 @Controller('api/v1/org')
@@ -22,8 +23,7 @@ export class SysOrgController {
         type: String,
         required: true
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '生成成功',
         type: String
     })
@@ -39,8 +39,7 @@ export class SysOrgController {
         summary: '创建组织',
         description: '创建新的组织'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '创建成功',
         type: SysOrg
     })
@@ -53,8 +52,7 @@ export class SysOrgController {
         summary: '更新组织',
         description: '更新组织信息'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '更新成功',
         type: Boolean
     })
@@ -72,8 +70,7 @@ export class SysOrgController {
         description: '组织ID',
         type: String
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '删除成功',
         type: Boolean
     })
@@ -91,8 +88,7 @@ export class SysOrgController {
         description: '组织ID',
         type: String
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '获取成功',
         type: OrgTreeDto
     })
@@ -110,8 +106,7 @@ export class SysOrgController {
         description: '组织ID',
         type: String
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '获取成功',
         type: SysOrg
     })
@@ -124,10 +119,10 @@ export class SysOrgController {
         summary: '获取所有组织树',
         description: '获取所有组织的树形结构'
     })
-    @ApiResponse({
-        status: 200,
+    @ApiRaxResponse({
         description: '获取成功',
-        type: [OrgTreeDto]
+        type: OrgTreeDto,
+        isArray: true
     })
     @Get('trees')
     async getOrgTrees(): Promise<OrgTreeDto[]> {
