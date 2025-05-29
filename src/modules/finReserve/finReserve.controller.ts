@@ -17,7 +17,7 @@ import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { ApiRaxResponse } from 'src/common/decorators/api-response.decorator';
 
 @ApiTags('储备融资')
-@Controller('api/v1/reserve')
+@Controller('api/v1/fin/reserve')
 export class FinReserveController {
   constructor(
     private readonly finReserveService: FinReserveService,

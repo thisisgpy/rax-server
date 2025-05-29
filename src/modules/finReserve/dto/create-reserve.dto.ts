@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsString, IsNumber, IsDate, IsArray, ValidateNested, IsOptional, Min, IsNotEmpty, ArrayMinSize } from 'class-validator';
+import { IsString, IsNumber, IsDate, IsArray, ValidateNested, IsOptional, IsNotEmpty, ArrayMinSize } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateReserveCostDetailDto {
@@ -12,11 +12,11 @@ export class CreateReserveCostDetailDto {
   costType: string;
 
   @ApiProperty({
-    description: '成本金额 (单位: 万元)',
+    description: '成本详情. 可能是数字、百分比、文字',
     type: String
   })
   @IsString()
-  @IsNotEmpty({ message: '成本金额不能为空' })
+  @IsNotEmpty({ message: '成本详情不能为空' })
   costAmount: string;
 }
 
@@ -66,11 +66,11 @@ export class CreateReserveDto {
 
   @ApiProperty({
     description: '融资金额 (单位: 万元)',
-    type: Number,
-    minimum: 0
+    type: Number
   })
-  @IsNumber()
-  @Min(0)
+  @IsNumber({ maxDecimalPlaces: 6 }, {
+    message: '融资金额格式不正确，最多支持 6 位小数'
+  })
   @IsNotEmpty({ message: '融资金额不能为空' })
   fundingAmount: number;
 
@@ -127,20 +127,20 @@ export class CreateReserveDto {
 
   @ApiProperty({
     description: '综合成本率 (单位: %)',
-    type: Number,
-    minimum: 0
+    type: Number
   })
-  @IsNumber()
-  @Min(0)
+  @IsNumber({ maxDecimalPlaces: 6 }, {
+    message: '综合成本率格式不正确，最多支持 6 位小数'
+  })
   combinedRatio: number;
 
   @ApiProperty({
     description: '附加费用 (单位: 万元)',
-    type: Number,
-    minimum: 0
+    type: Number
   })
-  @IsNumber()
-  @Min(0)
+  @IsNumber({ maxDecimalPlaces: 6 }, {
+    message: '附加费用格式不正确，最多支持 6 位小数'
+  })
   additionalCosts: number;
 
   @ApiProperty({

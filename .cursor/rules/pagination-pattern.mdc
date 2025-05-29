@@ -5,26 +5,44 @@ alwaysApply: false
 ---
 # Pagination, Search and List Patterns
 
+## Standard Pagination Response Format
+
+This project uses the `PageResult<T>` class for all paginated responses:
+
+```typescript
+{
+    pageNo: number;      // Current page number (1-based)
+    pageSize: number;    // Items per page
+    total: number;       // Total record count
+    pages: number;       // Total page count (calculated)
+    rows: T[];          // Data array
+}
+```
+
 ## DTO Structure
-For list/search operations, DTOs should follow these patterns:
 
 ### Query DTOs
+For search/list operations, DTOs should follow these patterns:
+
 ```typescript
-export class QueryDto {
+export class SearchSomeDto {
     @ApiProperty({
         description: '页码',
         type: Number,
-        default: 1
+        default: 1,
+        minimum: 1
     })
     @IsOptional()
     @IsInt()
     @Min(1)
-    page?: number = 1;
+    pageNo?: number = 1;
 
     @ApiProperty({
         description: '每页条数',
         type: Number,
-        default: 10
+        default: 10,
+        minimum: 1,
+        maximum: 100
     })
     @IsOptional()
     @IsInt()
@@ -40,55 +58,228 @@ export class QueryDto {
     @IsOptional()
     @IsString()
     keyword?: string;
+
+    // Additional search criteria
+    @ApiProperty({
+        description: '状态筛选',
+        type: String,
+        required: false
+    })
+    @IsOptional()
+    @IsString()
+    status?: string;
 }
 ```
 
 ### Response DTOs
-```typescript
-export class ListResponseDto<T> {
-    @ApiProperty({
-        description: '总记录数'
-    })
-    total: number;
+Use the `PageResult<T>` class for paginated responses:
 
-    @ApiProperty({
-        description: '当前页数据',
-        isArray: true
-    })
-    records: T[];
+```typescript
+import { PageResult } from '../../common/entities/page.entity';
+
+// Example list item DTO
+export class SomeListItemDto {
+    @ApiProperty({ description: 'ID' })
+    id: string;
+
+    @ApiProperty({ description: '名称' })
+    name: string;
+
+    @ApiProperty({ description: '创建时间' })
+    createTime: Date;
+
+    // Amount fields - always return as string
+    @ApiProperty({ description: '金额(分)', type: String })
+    amount: string;
+}
+
+// Service method return type
+async search(searchDto: SearchSomeDto): Promise<PageResult<SomeListItemDto>> {
+    // Implementation
 }
 ```
 
 ## Service Implementation
-Services should implement pagination using TypeORM's built-in pagination:
 
+### Standard Pagination Query
 ```typescript
-async findPage(queryDto: QueryDto): Promise<ListResponseDto<Entity>> {
-    const [records, total] = await this.repository
-        .createQueryBuilder('alias')
-        .skip((queryDto.page - 1) * queryDto.pageSize)
-        .take(queryDto.pageSize)
-        .getManyAndCount();
+async search(searchDto: SearchSomeDto): Promise<PageResult<SomeListItemDto>> {
+    const queryBuilder = this.repository.createQueryBuilder('alias');
+    
+    // Apply search conditions
+    if (searchDto.keyword) {
+        queryBuilder.andWhere(
+            '(alias.name LIKE :keyword OR alias.code LIKE :keyword)',
+            { keyword: `%${searchDto.keyword}%` }
+        );
+    }
+    
+    if (searchDto.status) {
+        queryBuilder.andWhere('alias.status = :status', { status: searchDto.status });
+    }
+    
+    // Apply ordering
+    queryBuilder.orderBy('alias.createTime', 'DESC');
+    
+    // Apply pagination
+    const skip = (searchDto.pageNo - 1) * searchDto.pageSize;
+    queryBuilder.skip(skip).take(searchDto.pageSize);
+    
+    // Execute query
+    const [entities, total] = await queryBuilder.getManyAndCount();
+    
+    // Convert to DTOs
+    const rows = entities.map(entity => this.convertToListItemDto(entity));
+    
+    // Return PageResult
+    return PageResult.of(searchDto.pageNo, searchDto.pageSize, total, rows);
+}
 
-    return { records, total };
+private convertToListItemDto(entity: SomeEntity): SomeListItemDto {
+    const dto = new SomeListItemDto();
+    dto.id = entity.id;
+    dto.name = entity.name;
+    dto.createTime = entity.createTime;
+    
+    // Amount conversion: always return as string
+    dto.amount = entity.amount.toString();
+    
+    return dto;
+}
+```
+
+### Complex Search with Multiple Tables
+```typescript
+async searchWithJoins(searchDto: SearchSomeDto): Promise<PageResult<SomeListItemDto>> {
+    const queryBuilder = this.repository
+        .createQueryBuilder('main')
+        .leftJoinAndSelect('main.relatedEntity', 'related')
+        .select([
+            'main.id',
+            'main.name',
+            'main.amount',
+            'main.createTime',
+            'related.name'
+        ]);
+    
+    // Apply search conditions
+    if (searchDto.keyword) {
+        queryBuilder.andWhere(
+            '(main.name LIKE :keyword OR related.name LIKE :keyword)',
+            { keyword: `%${searchDto.keyword}%` }
+        );
+    }
+    
+    // Apply pagination
+    const skip = (searchDto.pageNo - 1) * searchDto.pageSize;
+    queryBuilder.skip(skip).take(searchDto.pageSize);
+    
+    const [entities, total] = await queryBuilder.getManyAndCount();
+    const rows = entities.map(entity => this.convertToListItemDto(entity));
+    
+    return PageResult.of(searchDto.pageNo, searchDto.pageSize, total, rows);
 }
 ```
 
 ## Controller Implementation
-Controllers should use proper Swagger documentation for pagination endpoints:
 
+### Standard Search Endpoint
 ```typescript
 @ApiOperation({
     summary: '分页查询',
-    description: '分页查询列表数据'
+    description: '分页查询数据列表，支持关键字搜索和条件筛选'
 })
 @ApiResponse({
     status: 200,
     description: '查询成功',
-    type: ListResponseDto
+    type: PageResult<SomeListItemDto>
+})
+@Post('search')
+async search(@Body() searchDto: SearchSomeDto): Promise<PageResult<SomeListItemDto>> {
+    return this.service.search(searchDto);
+}
+```
+
+### Alternative GET Endpoint (for simple queries)
+```typescript
+@ApiOperation({
+    summary: '分页查询',
+    description: '分页查询数据列表'
+})
+@ApiResponse({
+    status: 200,
+    description: '查询成功',
+    type: PageResult<SomeListItemDto>
 })
 @Get('list')
-async findPage(@Query() queryDto: QueryDto): Promise<ListResponseDto<Entity>> {
-    return this.service.findPage(queryDto);
+async findPage(@Query() searchDto: SearchSomeDto): Promise<PageResult<SomeListItemDto>> {
+    return this.service.search(searchDto);
+}
+```
+
+## Best Practices
+
+### 1. Default Values
+- Always provide default values for `pageNo` (1) and `pageSize` (10)
+- Set reasonable maximum for `pageSize` (typically 100)
+
+### 2. Search Performance
+- Use indexed columns for search conditions
+- Avoid LIKE queries on large datasets without proper indexing
+- Consider using full-text search for complex text queries
+
+### 3. Data Conversion
+- Always convert amounts to strings in response DTOs
+- Apply consistent date formatting
+- Remove sensitive fields from list responses
+
+### 4. Error Handling
+- Validate pagination parameters
+- Handle edge cases (empty results, invalid page numbers)
+- Use appropriate HTTP status codes
+
+### 5. Swagger Documentation
+- Provide clear API documentation with examples
+- Document all query parameters and response fields
+- Include proper type information for arrays
+
+## Common Patterns
+
+### Search with Date Range
+```typescript
+export class SearchWithDateRangeDto extends SearchSomeDto {
+    @ApiProperty({
+        description: '开始日期',
+        type: Date,
+        required: false
+    })
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    startDate?: Date;
+
+    @ApiProperty({
+        description: '结束日期',
+        type: Date,
+        required: false
+    })
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    endDate?: Date;
+}
+```
+
+### Search with Status Filter
+```typescript
+export class SearchWithStatusDto extends SearchSomeDto {
+    @ApiProperty({
+        description: '状态筛选',
+        enum: SomeStatus,
+        required: false
+    })
+    @IsOptional()
+    @IsEnum(SomeStatus)
+    status?: SomeStatus;
 }
 ```

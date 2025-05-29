@@ -1,0 +1,31 @@
+-- 融资担保接口
+1. 新增融资担保记录
+  POST api/v1/fin/existing/guarantee/create
+  Response: 完整的融资担保记录
+  Tips: 
+    1. 每次只能新增一条融资担保记录.
+    2. 一条融资担保记录下可以有多条反担保记录和多个担保物记录.
+    3. 担保记录的 counterGuaranteeId 为 0.
+    4. 反担保记录的 counterGuaranteeId 为 担保记录的 id.
+2. 编辑融资担保记录
+  POST api/v1/fin/existing/guarantee/edit
+  Response: 更新后的完整的融资担保记录
+  Tips: 
+    1. 担保记录的所有字段都可以编辑.
+3. 删除融资担保记录
+  GET api/v1/fin/existing/guarantee/remove
+  Response: boolean
+  Tips: 
+    1. 删除融资担保记录时，会同时删除反担保记录和担保物记录.
+4. 根据融资担保记录 ID 查询融资担保详情
+  GET api/v1/fin/existing/guarantee/get/:id
+  Response: 完整的融资担保记录
+  Tips: 
+    1. 查询融资担保记录时，要同时查询反担保记录.
+    2. 查询融资担保记录时，要同时查询担保物记录，但只需要查询 ID，不需要查询详情.
+5. 根据存量融资 ID 查询所有的融资担保记录
+  GET api/v1/fin/existing/guarantee/list/:existingId
+  Response: 完整的融资担保记录数组
+  Tips: 
+    1. 查询融资担保记录时，要同时查询反担保记录.
+    2. 查询融资担保记录时，要同时查询担保物记录，但只需要查询 ID，不需要查询详情.

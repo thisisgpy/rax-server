@@ -9,152 +9,316 @@ Read the [package.json](mdc:package.json) carefully. You must use the installed 
 
 This project is a NestJS-based backend service with TypeORM for database management.
 
+## Package Management System
+
+Always use pnpm as package management system.
+
+## Core Technology Stack
+- **Framework**: NestJS 11.x (TypeScript)
+- **Database**: MySQL + TypeORM 0.3.x
+- **Documentation**: Swagger/OpenAPI
+- **Logging**: log4js
+- **Validation**: class-validator + class-transformer
+- **ID Generation**: Snowflake algorithm
+
+## Project Architecture
+
+### Directory Structure
+```
+src/
+├── app.module.ts           # Root module, registers all sub-modules
+├── main.ts                 # Application entry point
+├── common/                 # Shared components
+│   ├── context/           # Request-scoped UserContext
+│   ├── providers/         # Global service providers (Snowflake)
+│   ├── utils/             # Utility classes (CodeUtil, DateUtil)
+│   ├── exceptions/        # Business exceptions (RaxBizException)
+│   ├── logger/            # Logging service (log4js)
+│   ├── interceptors/      # Global interceptors
+│   ├── middleware/        # Middleware (authentication)
+│   └── entities/          # Common entities (PageResult)
+├── config/                # Configuration files
+├── entities/              # TypeORM entity definitions
+└── modules/               # Business modules
+    └── {moduleName}/      # Specific business module
+        ├── {moduleName}.module.ts
+        ├── {moduleName}.controller.ts
+        ├── {moduleName}.service.ts
+        └── dto/           # Data Transfer Objects
+```
+
+## Core Components
+
+### UserContext (Request-scoped)
+- REQUEST scope, independent instance per request
+- Set via AuthMiddleware
+- Globally registered, injectable in all modules
+- Provides user information: id, username, orgId, etc.
+
+### Snowflake ID Generator
+- Global singleton for unique ID generation
+- All entity primary keys use string type to store Snowflake IDs
+
+### Business Code Generation (CodeUtil)
+- Reserve financing: `RF + yyMMddHHmmss`
+- Existing financing: `EF + yyMMddHHmmss`
+
+### Exception Handling (RaxBizException)
+- Unified business exception handling
+- Returns HTTP 200 status, uses success field to indicate success/failure
+
+### Logging Service
+- Uses log4js for structured logging
+- Each service defines CONTEXT constant
+- Logs operation start, success, and failure
+
 ## Entity Structure
-- Entities are stored in [src/entities](mdc:src/entities)
-- All entities must follow these patterns:
-  - Use TypeORM decorators (@Entity, @Column, etc.)
-  - Include Swagger documentation (@ApiProperty) for all fields
-  - Use Chinese descriptions in comments and Swagger docs
-  - Follow naming convention: PascalCase for entity names (e.g., SysOrg, SysDict)
-  - Include proper column metadata (type, length, nullable, etc.)
 
-## Common Entity Fields
-Standard fields that should be included in most entities:
-- `id`: string (varchar) - Primary key
-- `createTime`: Date - Creation timestamp
-- `createBy`: string - Creator username
-- `updateTime`: Date - Last update timestamp
-- `updateBy`: string - Last updater username
+### Naming Conventions
+- **Entity class names**: PascalCase without suffix (e.g., `FinReserve`, `FinExisting`)
+- **File names**: camelCase (e.g., `finReserve.entity.ts`)
+- **Database table names**: snake_case (e.g., `fin_reserve`)
+- **Database columns**: snake_case (e.g., `create_time`)
+- **Entity properties**: camelCase (e.g., `createTime`)
 
-## Swagger Documentation
-All entities must include:
-- @ApiProperty decorator for each field
-- Description in Chinese
-- Proper type information
-- Length constraints where applicable
-- Required/optional field marking
-- Default values where applicable
-
-## Example Entity Structure
+### Standard Entity Structure
 ```typescript
 @Entity('table_name')
 export class EntityName {
-    @ApiProperty({
-        description: '字段中文描述',
-        type: String,
-        maxLength: 64  // if applicable
-    })
+    @ApiProperty({ description: '中文描述' })
+    @PrimaryColumn({ name: 'id', comment: '中文注释' })
+    id: string;
+
+    // Business fields
+    @ApiProperty({ description: '字段中文描述', type: String })
     @Column({
         name: 'column_name',
         type: 'varchar',
-        length: 64,    // if applicable
+        length: 64,
         comment: '字段中文描述'
     })
     fieldName: string;
+
+    // Standard audit fields
+    @ApiProperty({ description: '创建时间' })
+    @Column({ name: 'create_time', type: 'datetime', comment: '创建时间' })
+    createTime: Date;
+    
+    @ApiProperty({ description: '创建人' })
+    @Column({ name: 'create_by', comment: '创建人' })
+    createBy: string;
+    
+    @ApiProperty({ description: '更新时间' })
+    @Column({ name: 'update_time', type: 'datetime', comment: '更新时间' })
+    updateTime: Date;
+    
+    @ApiProperty({ description: '更新人' })
+    @Column({ name: 'update_by', comment: '更新人' })
+    updateBy: string;
 }
 ```
 
-## Core Technologies
-- NestJS as the backend framework
-- TypeORM for database operations
-- MySQL as the database
-- Class Validator and Class Transformer for DTO validation and transformation
+### Required Entity Documentation
+All entities must include:
+- @ApiProperty decorator for each field
+- Chinese descriptions in both comments and Swagger docs
+- Proper TypeORM column metadata (type, length, nullable, etc.)
+- Standard audit fields (createTime, createBy, updateTime, updateBy)
 
-## Project Structure
-The project follows a modular architecture with the following key directories:
+## Amount Handling Standard
 
-### Common Layer
-Located in [src/common](mdc:src/common):
-- Shared utilities, entities, and providers
-- Common entities like [page.entity.ts](mdc:src/common/entities/page.entity.ts) for pagination
+### Critical Amount Processing Rules
+**Input**: Always accept amount as string in 万元 (10,000 yuan) unit
+**Storage**: Always store amount as integer in 分 (cents) unit  
+**Output**: Always return amount as string in 分 (cents) unit
 
-### Entity Layer
-Located in [src/entities](mdc:src/entities):
-- TypeORM entities following the naming pattern: `sys*.entity.ts`
-- Example: [sysBank.entity.ts](mdc:src/entities/sysBank.entity.ts)
+### Amount Conversion Formula
+```typescript
+// Input: string in 万元 -> Storage: integer in 分
+const amountInCents = Math.round(parseFloat(inputAmount) * 1000000);
 
-### Module Layer
-Located in [src/modules](mdc:src/modules):
-Each module contains:
-- `*.module.ts` - Module definition and dependencies
-- `*.controller.ts` - REST endpoints
-- `*.service.ts` - Business logic
-- `dto/*.dto.ts` - Data Transfer Objects
-
-Example module structure:
-```
-src/modules/sysBank/
-├── dto/
-│   └── search-bank.dto.ts
-├── sysBank.module.ts
-├── sysBank.controller.ts
-└── sysBank.service.ts
+// Storage: integer in 分 -> Output: string in 分
+const outputAmount = amountInCents.toString();
 ```
 
-## Code Conventions
+### Amount Field Examples
+```typescript
+// DTO - Input
+@ApiProperty({
+    description: '融资金额 (单位: 万元)',
+    type: String,
+    example: "100.50"
+})
+@IsString()
+@IsNotEmpty({ message: '融资金额不能为空' })
+@Matches(/^\d+(\.\d{1,6})?$/, { message: '金额格式不正确，支持最多6位小数' })
+fundingAmount: string;
 
-### DTO Patterns
-- Use class-validator decorators for validation
-- Use class-transformer for type conversion
-- Default values for pagination:
-  - pageNo: 1 (minimum 1)
-  - pageSize: 10 (minimum 1)
+// Entity - Storage
+@ApiProperty({ description: '融资金额(分)', type: 'number' })
+@Column({ name: 'funding_amount', type: 'bigint', comment: '融资金额，以分计算' })
+fundingAmount: number;
 
-### REST API Conventions
-- Base URL pattern: `/api/v1/{module}`
-- Search endpoints use POST method with request body
-- Response format uses PageResult for paginated data:
-  ```typescript
-  {
-    pageNo: number;    // Current page
-    pageSize: number;  // Items per page
-    total: number;     // Total records
-    pages: number;     // Total pages
-    rows: T[];        // Data array
-  }
-  ```
+// Response - Output
+@ApiProperty({ description: '融资金额(分)', type: String })
+fundingAmount: string;
+```
 
-### Database Conventions
-- Entity columns use snake_case in database
-- Entity properties use camelCase in TypeScript
-- Use TypeORM decorators for column definitions
-- Always include column comments
+## Module Structure
 
-### Search Implementation Pattern
-- Use TypeORM Repository pattern
-- Support exact match and fuzzy search (LIKE)
-- Implement proper pagination with skip/take
-- Order results consistently (e.g., by code ASC)
+### Standard Module Configuration
+```typescript
+@Module({
+    imports: [
+        TypeOrmModule.forFeature([Entity1, Entity2]), // Repository entities
+        ContextModule,        // UserContext - REQUIRED
+        SnowflakeModule,      // ID generator - REQUIRED  
+        LoggerModule,         // Logging service - REQUIRED
+    ],
+    controllers: [SomeController],
+    providers: [SomeService],
+    exports: [SomeService],
+})
+export class SomeModule {}
+```
 
-### Organization Code Structure
-- Organization codes follow a hierarchical 4-digit segment pattern
-- Each 4 digits represent one level in the organization hierarchy
-- Examples:
-  - "0001" - First level organization
-  - "00010001" - Second level under "0001"
-  - "000100010001" - Third level under "00010001"
+### Service Implementation Pattern
+```typescript
+@Injectable()
+export class SomeService {
+    private readonly CONTEXT = 'SomeService';
 
-### Database Operations
-- All write operations must use transactions
-- Entity operations should validate field existence and correctness
-- Use TypeORM's Repository pattern for database access
-- Proper error handling with custom exceptions
+    constructor(
+        @InjectRepository(Entity)
+        private readonly repository: Repository<Entity>,
+        private readonly dataSource: DataSource,
+        @Inject(SNOWFLAKE)
+        private readonly snowflake: Snowflake,
+        @Inject('UserContext')
+        private readonly userContext: UserContext,
+        private readonly logger: LoggerService,
+    ) {}
 
-### Date/Time Formats
-- Dates: yyyy-MM-dd
-- Datetimes: yyyy-MM-dd HH:mm:ss
+    /**
+     * Detailed JSDoc comments
+     * @param param Parameter description
+     * @returns Return value description
+     * @throws {RaxBizException} Exception description
+     */
+    async someMethod(param: string): Promise<Entity> {
+        this.logger.info(this.CONTEXT, 'Operation started');
+        
+        // Transaction handling
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        
+        try {
+            // Business logic
+            const result = await queryRunner.manager.save(entity);
+            await queryRunner.commitTransaction();
+            this.logger.info(this.CONTEXT, 'Operation completed successfully');
+            return result;
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            this.logger.error(this.CONTEXT, err, 'Operation failed');
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+}
+```
+
+## DTO Structure
 
 ### Naming Conventions
-- File names use camelCase
-- Classes use PascalCase
-- Methods and variables use camelCase
-- Database columns use snake_case
-- DTOs follow the pattern: purpose-entity.dto.ts (e.g., create-org.dto.ts)
+- **Create DTOs**: `create-{entity}.dto.ts` (kebab-case)
+- **Update DTOs**: `update-{entity}.dto.ts` (kebab-case)
+- **Search DTOs**: `search-{entity}.dto.ts` (kebab-case)
+- **Response DTOs**: `{entity}-{purpose}.dto.ts` (kebab-case)
 
-### ID Generation
-- All IDs are generated using Snowflake algorithm
-- Snowflake is provided as a NestJS provider
-- IDs are string type in the system
+### Standard DTO Pattern
+```typescript
+export class CreateSomeDto {
+    @ApiProperty({
+        description: '中文描述',
+        type: String,
+        required: true,
+        example: '示例值'
+    })
+    @IsString()
+    @IsNotEmpty({ message: '不能为空' })
+    fieldName: string;
+
+    // Amount fields - always string input
+    @ApiProperty({
+        description: '金额 (单位: 万元)',
+        type: String,
+        example: "100.50"
+    })
+    @IsString()
+    @IsNotEmpty({ message: '金额不能为空' })
+    @Matches(/^\d+(\.\d{1,6})?$/, { message: '金额格式不正确' })
+    amount: string;
+}
+```
+
+## Database Operations
+
+### Transaction Management
+- All write operations must use transactions
+- Use DataSource.createQueryRunner() for transaction control
+- Always include proper error handling and resource cleanup
+
+### Repository Pattern
+- Use TypeORM Repository pattern for database access
+- Implement proper pagination with skip/take
+- Support exact match and fuzzy search (LIKE)
+- Order results consistently
+
+### Error Handling
+- Use RaxBizException for business logic errors
+- Include detailed logging for all operations
+- Implement proper transaction rollback on errors
+
+## Response Format
+
+### Standard API Response
+```typescript
+{
+    success: boolean;    // Operation success indicator
+    message: string;     // Error message or empty for success
+    data: any;          // Response data or null for errors
+}
+```
+
+### Pagination Response (PageResult)
+```typescript
+{
+    pageNo: number;      // Current page number
+    pageSize: number;    // Items per page
+    total: number;       // Total record count
+    pages: number;       // Total page count
+    rows: T[];          // Data array
+}
+```
+
+## Date/Time Handling
+- **Input dates**: Accept ISO string format
+- **Storage**: Use MySQL datetime type
+- **Output**: Format as yyyy-MM-dd HH:mm:ss
+- **Timezone**: +08:00 (China Standard Time)
+
+## Security & Authentication
+- AuthMiddleware sets UserContext for each request
+- User information available via UserContext injection
+- All operations logged with user context
+
+## Environment Configuration
+- Use environment variables for database configuration
+- Development settings in .env.example (if available)
+- Production settings via environment variables
 
 
 

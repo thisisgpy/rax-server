@@ -12,6 +12,7 @@ import { SysDictModule } from './modules/sysDict/sysDict.module';
 import { SysBankModule } from './modules/sysBank/sysBank.module';
 import { FinReserveModule } from './modules/finReserve/finReserve.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { FinExistingModule } from './modules/finExisting/finExisting.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { LoggerModule } from './common/logger/logger.module';
     SysBankModule,
     FinReserveModule,
     LoggerModule,
+    FinExistingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

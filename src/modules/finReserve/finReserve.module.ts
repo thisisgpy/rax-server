@@ -9,6 +9,9 @@ import { FinReserveService } from './finReserve.service';
 import { ContextModule } from '../../common/context/context.module';
 import { SnowflakeModule } from '../../common/providers/snowflake.module';
 import { ConfigModule } from '../../common/config/config.module';
+import { FinReserveConverter } from './converters/fin-reserve.converter';
+import { FinReserveValidator } from './validators/fin-reserve.validator';
+import { FinReserveFactory } from './factories/fin-reserve.factory';
 
 @Module({
   imports: [
@@ -23,7 +26,12 @@ import { ConfigModule } from '../../common/config/config.module';
     ConfigModule,
   ],
   controllers: [FinReserveController],
-  providers: [FinReserveService],
+  providers: [
+    FinReserveService,
+    FinReserveConverter,
+    FinReserveValidator,
+    FinReserveFactory,
+  ],
   exports: [FinReserveService],
 })
 export class FinReserveModule {} 
