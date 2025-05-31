@@ -158,19 +158,19 @@ CREATE TABLE
     `funding_amount`        BIGINT(20) COMMENT '融资总额，以分计算',
 
     `return_interest_rate`    DECIMAL(8, 4) COMMENT '回报利率',
-    `repayment_period`        TINYINT(2) COMMENT '还款周期.1:月,2:季,3:半年,4:年,5:到期一次性付,6:自行协商',
-    `repayment_method`        TINYINT(2) COMMENT '还款方式.1:等额本息,2:分期还本付息,3:先息后本,4:到期一次性还本付息,5:其他',
-    `interest_type`           TINYINT(2) COMMENT '利息类型.1:固定利率,2:浮动利率',
+    `repayment_period`        TINYINT(2) COMMENT '还款周期',
+    `repayment_method`        TINYINT(2) COMMENT '还款方式',
+    `interest_type`           TINYINT(2) COMMENT '利息类型',
     `loan_prime_rate`         DECIMAL(8, 4) COMMENT '基准利率',
     `basis_point`             DECIMAL(8, 4) COMMENT '基点',
     `days_count_basis`        TINYINT(2) COMMENT '计息基准.1:ACT/365,2:ACT/366,3:ACT/360,4:30/360',
-    `include_settlement_date` TINYINT(1) DEFAULT 0 COMMENT '结息日当日是否计息. 0: 否, 1: 是',
+    `include_settlement_date` TINYINT(1) DEFAULT 1 COMMENT '结息日当日是否计息. 0: 否, 1: 是',
     `repayment_delay_days`    INT(11)    DEFAULT 0 COMMENT '还款日相对于结息日的延迟天数',
 
     `loan_renewal_from_id`  VARCHAR(64) COMMENT '续贷来源 ID.0 表示非续贷',
     `is_multiple`           TINYINT(1) DEFAULT 0 COMMENT '是否为多次放款. 0: 否, 1: 是',
     `fin_term`              INT(11) COMMENT '融资期限，以月为单位',
-    `is_public`             TINYINT(1) DEFAULT 0 COMMENT '是否为公开融资. 0: 否, 1: 是',
+    `is_public`             TINYINT(1) DEFAULT 1 COMMENT '是否为公开融资. 0: 否, 1: 是',
     `create_time`           DATETIME   DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by`             VARCHAR(32) NOT NULL COMMENT '创建人',
     `update_time`           DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
@@ -179,7 +179,7 @@ CREATE TABLE
     PRIMARY KEY `pk_fin_existing_id` (`id`)
 );
 
--- 融资放款
+-- 存量融资放款记录
 DROP TABLE IF EXISTS `fin_existing_disbursement`;
 CREATE TABLE
     `fin_existing_disbursement`
@@ -199,42 +199,57 @@ CREATE TABLE
     PRIMARY KEY `pk_fin_existing_disbursement_id` (`id`)
 );
 
--- 还本付息计划
-DROP TABLE IF EXISTS `fin_existing_repayment`;
+-- 存量融资还本付息计划
+DROP TABLE IF EXISTS `fin_existing_repayment_plan`;
 CREATE TABLE
-    `fin_existing_repayment`
+    `fin_existing_repayment_plan`
 (
-    `id`                      VARCHAR(64) COMMENT '还本付息计划 ID',
+    `id` VARCHAR(64) COMMENT '还本付息计划 ID',
+    `parent_id` VARCHAR(64) DEFAULT '0' COMMENT '上个版本的还本付息计划 ID. 0 表示没有父版本',
+    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
+    `disbursement_id` VARCHAR(64) COMMENT '融资放款 ID',
+    `is_active` TINYINT(1) DEFAULT 1 COMMENT '是否为可用计划. 0: 否, 1: 是.一条放款记录只能有一个可用计划',
+    `verify_comment` VARCHAR(512) COMMENT '审核意见',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
+    `update_by` VARCHAR(32) COMMENT '信息更新人',
+    PRIMARY KEY `pk_fin_existing_repayment_plan_id` (`id`)
+);
+
+-- 存量融资还本付息明细
+DROP TABLE IF EXISTS `fin_existing_repayment_item`;
+CREATE TABLE
+    `fin_existing_repayment_item`
+(
+    `id`                      VARCHAR(64) COMMENT '还本付息明细 ID',
     `existing_id`             VARCHAR(64) COMMENT '存量融资 ID',
+    `disbursement_id`         VARCHAR(64) COMMENT '融资放款 ID',
+    `repayment_plan_id`       VARCHAR(64) COMMENT '还本付息计划 ID',
     `period`                  INT(11) COMMENT '期数',
     `interest_settle_date`    DATE COMMENT '结息日',
     `interest_calculate_date` INT(11) COMMENT '计息天数',
     `repayment_date`          DATE COMMENT '还款日期',
-    `actual_repayment_date`   DATE COMMENT '实际还款日期',
+    `actual_repayment_date`   DATE COMMENT '实际还款日期.不为空表示已还款',
     `repayment_principal`     BIGINT(20) COMMENT '还款本金，以分计算',
     `repayment_interest`      BIGINT(20) COMMENT '还款利息，以分计算',
     `repayment_amount`        BIGINT(20) COMMENT '还款总额，以分计算',
-    `is_repaid`               TINYINT(1) DEFAULT 0 COMMENT '是否已还款. 0: 否, 1: 是',
-    `create_time`             DATETIME   DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_by`               VARCHAR(32) NOT NULL COMMENT '创建人',
-    `update_time`             DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
-    `update_by`               VARCHAR(32) COMMENT '信息更新人',
-    PRIMARY KEY `pk_fin_existing_repayment_id` (`id`)
+    PRIMARY KEY `pk_fin_existing_repayment_item_id` (`id`)
 );
 
--- 融资放款与还本付息计划关系
-DROP TABLE IF EXISTS `fin_existing_disbursement_repayment_rel`;
+-- 存量融资放款与还本付息计划关系
+DROP TABLE IF EXISTS `fin_existing_disbursement_repayment_plan_rel`;
 CREATE TABLE
-    `fin_existing_disbursement_repayment_rel`
+    `fin_existing_disbursement_repayment_plan_rel`
 (
-    `id` VARCHAR(64) COMMENT '关系 ID',
+    `id` VARCHAR(64) COMMENT '融资放款与还本付息计划关系 ID',
     `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
     `disbursement_id` VARCHAR(64) COMMENT '融资放款 ID',
-    `repayment_id` VARCHAR(64) COMMENT '还本付息计划 ID',
-    PRIMARY KEY `pk_fin_existing_disbursement_repayment_rel_id` (`id`)
+    `repayment_plan_id` VARCHAR(64) COMMENT '还本付息计划 ID',
+    PRIMARY KEY `pk_fin_existing_disbursement_repayment_plan_rel_id` (`id`)
 );
 
--- 融资担保
+-- 存量融资担保记录
 DROP TABLE IF EXISTS `fin_existing_guarantee`;
 CREATE TABLE
     `fin_existing_guarantee`
@@ -253,7 +268,7 @@ CREATE TABLE
     PRIMARY KEY `pk_fin_existing_guarantee_id` (`id`)
 );
 
--- 融资担保与担保物关系
+-- 存量融资担保与担保物关系
 DROP TABLE IF EXISTS `fin_existing_guarantee_asset`;
 CREATE TABLE
     `fin_existing_guarantee_asset`
@@ -264,7 +279,7 @@ CREATE TABLE
     PRIMARY KEY `pk_fin_existing_guarantee_asset_id` (`id`)
 );
 
--- 融资勾稽
+-- 存量融资勾稽
 DROP TABLE IF EXISTS `fin_existing_linkage`;
 CREATE TABLE
     `fin_existing_linkage`
