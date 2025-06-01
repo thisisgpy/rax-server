@@ -75,9 +75,21 @@ src/
 ## Entity Structure
 
 ### Naming Conventions
-- **Entity class names**: PascalCase without suffix (e.g., `FinReserve`, `FinExisting`)
-- **File names**: camelCase (e.g., `finReserve.entity.ts`)
-- **Database table names**: snake_case (e.g., `fin_reserve`)
+
+#### File Naming
+- **Module files**: camelCase (e.g., `sysOrg.module.ts`)
+- **Service files**: camelCase (e.g., `sysOrg.service.ts`) 
+- **Controller files**: camelCase (e.g., `sysOrg.controller.ts`)
+- **Entity files**: camelCase (e.g., `sysOrg.entity.ts`)
+- **DTO files**: kebab-case (e.g., `create-sys-org.dto.ts`)
+
+#### Class and Variable Naming
+- **Module class names**: PascalCase with Module suffix (e.g., `SysOrgModule`)
+- **Service class names**: PascalCase with Service suffix (e.g., `SysOrgService`)
+- **Controller class names**: PascalCase with Controller suffix (e.g., `SysOrgController`)
+- **Entity class names**: PascalCase without suffix (e.g., `SysOrg`, `SysDict`)
+- **File names**: camelCase (e.g., `sysOrg.entity.ts`)
+- **Database table names**: snake_case (e.g., `sys_org`)
 - **Database columns**: snake_case (e.g., `create_time`)
 - **Entity properties**: camelCase (e.g., `createTime`)
 
