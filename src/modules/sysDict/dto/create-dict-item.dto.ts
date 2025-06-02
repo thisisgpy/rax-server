@@ -1,14 +1,15 @@
-import { IsNotEmpty, IsString, IsOptional, IsBoolean, IsInt, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsBoolean, IsInt, Min, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateDictItemDto {
     @ApiProperty({
         description: '字典ID',
-        type: String
+        type: Number
     })
     @IsNotEmpty({ message: '字典ID不能为空' })
-    @IsString()
-    dictId: string;
+    @IsNumber({}, { message: '字典ID必须是数字' })
+    @Min(0, { message: '字典ID不能小于0' })
+    dictId: number;
 
     @ApiProperty({
         description: '字典编码',
@@ -56,13 +57,14 @@ export class CreateDictItemDto {
 
     @ApiProperty({
         description: '父级ID (0表示顶级)',
-        type: String,
+        type: Number,
         required: false,
-        default: '0'
+        default: 0
     })
     @IsOptional()
-    @IsString()
-    parentId?: string = '0';
+    @IsNumber({}, { message: '父级ID必须是数字' })
+    @Min(0, { message: '父级ID不能小于0' })
+    parentId?: number = 0;
 
     @ApiProperty({
         description: '是否启用',

@@ -9,9 +9,9 @@ export class DictItemTreeDto {
      */
     @ApiProperty({
         description: '字典项ID',
-        type: String
+        type: Number
     })
-    id: string;
+    id: number;
 
     /**
      * 字典项标签

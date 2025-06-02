@@ -6,28 +6,28 @@ export class SysDict {
     @ApiProperty({
         description: '字典ID'
     })
-    @PrimaryColumn({ name: 'id', comment: '字典ID' })
-    id: string;
+    @PrimaryColumn({ name: 'id', type: 'number', comment: '字典ID' })
+    id: number;
 
     @ApiProperty({
         description: '字典编码',
         uniqueItems: true
     })
-    @Column({ name: 'code', unique: true, comment: '字典编码' })
+    @Column({ name: 'code', type: 'varchar', length: 64, unique: true, comment: '字典编码' })
     code: string;
 
     @ApiProperty({
         description: '字典名称',
         uniqueItems: true
     })
-    @Column({ name: 'name', unique: true, comment: '字典名称' })
+    @Column({ name: 'name', type: 'varchar', length: 64, unique: true, comment: '字典名称' })
     name: string;
 
     @ApiProperty({
         description: '字典备注',
         required: false
     })
-    @Column({ name: 'comment', nullable: true, comment: '字典备注' })
+    @Column({ name: 'comment', type: 'varchar', length: 128, nullable: true, comment: '字典备注' })
     comment?: string;
 
     @ApiProperty({

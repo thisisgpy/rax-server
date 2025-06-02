@@ -3,7 +3,21 @@
  */
 export class CodeUtil {
 
+  /**
+   * 生成储备融资编码
+   * @returns 储备融资编码，格式：RFyyMMddHHmmss
+   */
+  static generateFinReserveCode(): string {
+    return `RF${this.generateDateFormatString()}`;
+  }
 
+  /**
+   * 生成存量融资编码
+   * @returns 存量融资编码，格式：EFyyMMddHHmmss
+   */
+  static generateFinExistingCode(): string {
+    return `EF${this.generateDateFormatString()}`;
+  }
   
   /**
    * 生成日期格式字符串

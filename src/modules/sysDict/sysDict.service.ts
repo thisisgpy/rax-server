@@ -138,7 +138,7 @@ export class SysDictService {
      * 如果字典下存在字典项，则不允许删除
      * @param id 字典ID
      */
-    async remove(id: string): Promise<void> {
+    async remove(id: number): Promise<void> {
         // 1. 检查字典是否存在
         const dict = await this.sysDictRepository.findOne({
             where: { id }
@@ -178,7 +178,7 @@ export class SysDictService {
      * @param id 字典ID
      * @returns 数据字典详情
      */
-    async findOne(id: string): Promise<SysDict> {
+    async findOne(id: number): Promise<SysDict> {
         const dict = await this.sysDictRepository.findOne({
             where: { id }
         });
@@ -229,7 +229,7 @@ export class SysDictService {
      * @param id 字典项ID
      * @returns 字典项详情
      */
-    async findDictItem(id: string): Promise<SysDictItem> {
+    async findDictItem(id: number): Promise<SysDictItem> {
         const dictItem = await this.sysDictItemRepository.findOne({
             where: { id }
         });
@@ -256,7 +256,7 @@ export class SysDictService {
         }
 
         // 3. 如果有父级ID，检查父级是否存在
-        if (createDictItemDto.parentId && createDictItemDto.parentId !== '0') {
+        if (createDictItemDto.parentId && createDictItemDto.parentId !== 0) {
             await this.findDictItem(createDictItemDto.parentId);
         }
 
@@ -281,7 +281,7 @@ export class SysDictService {
             value: createDictItemDto.value,
             comment: createDictItemDto.comment,
             sort: createDictItemDto.sort || 0,
-            parentId: createDictItemDto.parentId || '0',
+            parentId: createDictItemDto.parentId || 0,
             isEnabled: createDictItemDto.isEnabled ?? true,
             createBy: this.userContext.getUsername()!,
             createTime: new Date()
@@ -310,9 +310,9 @@ export class SysDictService {
      * @param itemId 字典项ID
      * @returns 子孙ID列表
      */
-    private async getDescendantIds(dictId: string, itemId: string): Promise<string[]> {
-        const descendants: string[] = [];
-        const stack: string[] = [itemId];
+    private async getDescendantIds(dictId: number, itemId: number): Promise<number[]> {
+        const descendants: number[] = [];
+        const stack: number[] = [itemId];
 
         while (stack.length > 0) {
             const currentId = stack.pop()!;
@@ -351,7 +351,7 @@ export class SysDictService {
             }
 
             // 2.2 如果父级不是根节点，检查父级是否存在
-            if (updateDictItemDto.parentId !== '0') {
+            if (updateDictItemDto.parentId !== 0) {
                 const parentItem = await this.findDictItem(updateDictItemDto.parentId);
                 
                 // 2.3 检查父级必须在同一个字典下
@@ -412,7 +412,7 @@ export class SysDictService {
      * @param id 字典项ID
      * @throws RaxBizException 当存在子孙节点时
      */
-    async removeDictItem(id: string): Promise<void> {
+    async removeDictItem(id: number): Promise<void> {
         // 1. 检查字典项是否存在
         const dictItem = await this.findDictItem(id);
 
@@ -446,7 +446,7 @@ export class SysDictService {
      * @param onlyEnabled 是否只返回启用的项，默认true
      * @returns 子项列表
      */
-    private async getItemChildren(dictId: string, itemParentId: string, onlyEnabled: boolean = true): Promise<DictItemTreeDto[]> {
+    private async getItemChildren(dictId: number, itemParentId: number, onlyEnabled: boolean = true): Promise<DictItemTreeDto[]> {
         // 查询 dictId 下所有 parentId 为 itemParentId 的子项
         const subItems = await this.sysDictItemRepository.find({
             where: {
@@ -483,11 +483,11 @@ export class SysDictService {
      * @param onlyEnabled 是否只返回启用的项，默认true
      * @returns 树形结构的字典项列表
      */
-    async findDictItemTreeById(id: string, onlyEnabled: boolean = true): Promise<DictItemTreeDto> {
+    async findDictItemTreeById(id: number, onlyEnabled: boolean = true): Promise<DictItemTreeDto> {
         // 1. 查询字典是否存在
         const dict = await this.findOne(id);
         const root = new DictItemTreeDto();
-        const children = await this.getItemChildren(dict.id, '0', onlyEnabled)
+        const children = await this.getItemChildren(dict.id, 0, onlyEnabled)
         root.children = children;
         return root;
     }

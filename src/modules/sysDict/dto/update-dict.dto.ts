@@ -1,14 +1,15 @@
-import { IsString, IsBoolean, IsOptional, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsNotEmpty, MaxLength, IsNumber, Min} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateDictDto {
     @ApiProperty({
         description: '字典ID',
-        type: String
+        type: Number
     })
-    @IsString({ message: '字典ID必须是字符串' })
+    @IsNumber({}, { message: '字典ID必须是数字' })
     @IsNotEmpty({ message: '字典ID不能为空' })
-    id: string;
+    @Min(0, { message: '字典ID不能小于0' })
+    id: number;
 
     @ApiProperty({
         description: '字典名称',
@@ -37,5 +38,5 @@ export class UpdateDictDto {
     })
     @IsBoolean({ message: '是否启用必须是布尔值' })
     @IsNotEmpty({ message: '是否启用不能为空' })
-    isEnabled: boolean;
+    isEnabled: boolean = true;
 } 

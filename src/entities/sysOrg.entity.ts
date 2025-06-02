@@ -5,16 +5,14 @@ import { ApiProperty } from '@nestjs/swagger';
 export class SysOrg {
     @ApiProperty({
         description: '组织ID',
-        type: String,
-        maxLength: 64
+        type: Number
     })
     @PrimaryColumn({
         name: 'id',
-        type: 'varchar',
-        length: 64,
+        type: 'number',
         comment: '组织ID'
     })
-    id: string;
+    id: number;
 
     @ApiProperty({
         description: '组织编码',
@@ -72,18 +70,16 @@ export class SysOrg {
 
     @ApiProperty({
         description: '父级组织ID',
-        type: String,
-        maxLength: 64,
-        default: '0'
+        type: Number,
+        default: 0
     })
     @Column({
         name: 'parent_id',
-        type: 'varchar',
-        length: 64,
-        default: '0',
+        type: 'number',
+        default: 0,
         comment: '父级组织ID. 0表示没有父组织'
     })
-    parentId: string;
+    parentId: number;
 
     @ApiProperty({
         description: '创建时间',

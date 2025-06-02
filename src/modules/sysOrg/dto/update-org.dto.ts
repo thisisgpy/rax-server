@@ -1,15 +1,15 @@
-import { IsNotEmpty, IsString, IsOptional, MaxLength, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, MaxLength, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateOrgDto {
     @ApiProperty({
         description: '组织ID',
-        type: String
+        type: Number
     })
     @IsNotEmpty({ message: '组织ID不能为空' })
-    @IsString({ message: '组织ID必须是字符串' })
-    @Matches(/^[0-9]+$/, { message: '组织ID必须是数字字符串' })
-    id: string;
+    @IsNumber({}, { message: '组织ID必须是数字' })
+    @Min(0, { message: '组织ID不能小于0' })
+    id: number;
 
     @ApiProperty({
         description: '组织名称',
@@ -46,10 +46,10 @@ export class UpdateOrgDto {
 
     @ApiProperty({
         description: '父级组织ID',
-        type: String
+        type: Number
     })
     @IsNotEmpty({ message: '父级组织ID不能为空' })
-    @IsString({ message: '父级组织ID必须是字符串' })
-    @Matches(/^[0-9]+$/, { message: '父级组织ID必须是数字字符串' })
-    parentId: string;
+    @IsNumber({}, { message: '父级组织ID必须是数字' })
+    @Min(0, { message: '父级组织ID不能小于0' })
+    parentId: number;
 } 

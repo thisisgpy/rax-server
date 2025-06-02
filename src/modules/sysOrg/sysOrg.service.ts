@@ -37,14 +37,14 @@ export class SysOrgService {
      * @param parentId 父级组织 ID
      * @returns 组织编码
      */
-    async generateOrgCode(parentId: string): Promise<string> {
+    async generateOrgCode(parentId: number): Promise<string> {
         // 1. 验证 parentId 是否为空
-        if (parentId === undefined || parentId === null || parentId === '') {
+        if (parentId === undefined || parentId === null) {
             throw new RaxBizException('父级组织ID不能为空');
         }
 
         // 2. 如果 parentId 不为 0，检查父组织是否存在
-        if (parentId !== '0') {
+        if (parentId !== 0) {
             const parentOrg = await this.sysOrgRepository.findOne({
                 where: { id: parentId }
             });
@@ -62,7 +62,7 @@ export class SysOrgService {
 
         // 4. 生成新的组织编码
         if (!maxOrg) {
-            if (parentId === '0') {
+            if (parentId === 0) {
                 // 一级组织，直接返回 0001
                 return '0001';
             } else {
@@ -120,7 +120,7 @@ export class SysOrgService {
      */
     async create(createOrgDto: CreateOrgDto): Promise<SysOrg> {
         // 1. 验证父组织是否存在
-        if (createOrgDto.parentId !== '0') {
+        if (createOrgDto.parentId !== 0) {
             const parentOrg = await this.sysOrgRepository.findOne({
                 where: { id: createOrgDto.parentId }
             });
@@ -194,7 +194,7 @@ export class SysOrgService {
 
         // 4 & 5. 处理父组织变更
         if (isParentChanged) {
-            if (updateOrgDto.parentId !== '0') {
+            if (updateOrgDto.parentId !== 0) {
                 // 5.1 检查新的父组织是否存在
                 const newParentOrg = await this.sysOrgRepository.findOne({
                     where: { id: updateOrgDto.parentId }
@@ -278,7 +278,7 @@ export class SysOrgService {
      * @param id 组织ID
      * @returns 删除是否成功
      */
-    async delete(id: string): Promise<boolean> {
+    async delete(id: number): Promise<boolean> {
         // 1. 检查组织是否存在
         const org = await this.sysOrgRepository.findOne({
             where: { id }
@@ -311,7 +311,7 @@ export class SysOrgService {
      * @param id 组织ID
      * @returns 组织树
      */
-    async getOrgTree(id: string): Promise<OrgTreeDto> {
+    async getOrgTree(id: number): Promise<OrgTreeDto> {
         // 1. 查询当前组织
         const currentOrg = await this.sysOrgRepository.findOne({
             where: { id }
@@ -336,7 +336,7 @@ export class SysOrgService {
             .getMany();
 
         // 3. 构建组织树
-        const orgMap = new Map<string, OrgTreeDto>();
+        const orgMap = new Map<number, OrgTreeDto>();
         let rootOrg: OrgTreeDto | undefined;
 
         // 3.1 先将所有组织转换为 OrgTreeDto 并存入 Map
@@ -346,7 +346,7 @@ export class SysOrgService {
 
         // 3.2 建立父子关系
         orgMap.forEach(org => {
-            if (org.parentId === '0') {
+            if (org.parentId === 0) {
                 rootOrg = org;
             } else {
                 const parentOrg = orgMap.get(org.parentId);
@@ -388,7 +388,7 @@ export class SysOrgService {
      * @param id 组织ID
      * @returns 组织
      */
-    async getOrgById(id: string): Promise<SysOrg> {
+    async getOrgById(id: number): Promise<SysOrg> {
         const org = await this.sysOrgRepository.findOne({
             where: { id }
         });

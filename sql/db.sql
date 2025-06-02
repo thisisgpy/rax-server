@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `sys_org`;
 
 CREATE TABLE
   `sys_org` (
-    `id` VARCHAR(64) NOT NULL COMMENT '组织ID',
+    `id` BIGINT(20) NOT NULL COMMENT '组织ID',
     `code` VARCHAR(64) NOT NULL COMMENT '组织编码. 4位一级. 0001,00010001,000100010001,以此类推',
     `name` VARCHAR(64) NOT NULL COMMENT '组织名称',
     `name_abbr` VARCHAR(64) NOT NULL COMMENT '组织名称简称',
@@ -21,7 +21,7 @@ DROP TABLE IF EXISTS `sys_dict`;
 
 CREATE TABLE
   `sys_dict` (
-    `id` VARCHAR(64) COMMENT '字典ID',
+    `id` BIGINT(20) NOT NULL COMMENT '字典ID',
     `code` VARCHAR(64) UNIQUE NOT NULL COMMENT '字典编码',
     `name` VARCHAR(64) UNIQUE NOT NULL COMMENT '字典名称',
     `comment` VARCHAR(128) COMMENT '字典备注',
@@ -38,8 +38,8 @@ DROP TABLE IF EXISTS `sys_dict_item`;
 
 CREATE TABLE
   `sys_dict_item` (
-    `id` VARCHAR(64) COMMENT '字典项ID',
-    `dict_id` VARCHAR(64) NOT NULL COMMENT '字典ID',
+    `id` BIGINT(20) NOT NULL COMMENT '字典项ID',
+    `dict_id` BIGINT(20) NOT NULL COMMENT '字典ID',
     `dict_code` VARCHAR(64) NOT NULL COMMENT '字典编码',
     `label` VARCHAR(64) NOT NULL COMMENT '字典项标签',
     `value` VARCHAR(64) NOT NULL COMMENT '字典项值',
@@ -73,9 +73,9 @@ DROP TABLE IF EXISTS `sys_attachment`;
 
 CREATE TABLE
   `sys_attachment` (
-    `id` VARCHAR(64) COMMENT '附件 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '附件 ID',
     `biz_module` VARCHAR(64) COMMENT '业务模块名称',
-    `biz_id` VARCHAR(64) COMMENT '业务数据 ID',
+    `biz_id` BIGINT(20) COMMENT '业务数据 ID',
     `original_name` VARCHAR(128) COMMENT '原文件名',
     `saved_name` VARCHAR(128) COMMENT '存储文件名',
     `extension` VARCHAR(32) COMMENT '文件扩展名',
@@ -91,18 +91,18 @@ DROP TABLE IF EXISTS `fin_reserve`;
 
 CREATE TABLE
   `fin_reserve` (
-    `id` VARCHAR(64) COMMENT '储备融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '储备融资 ID',
     `code` VARCHAR(64) COMMENT '储备融资编码.编码规则: RF 开头，后面跟 yyMMddHHmmss',
-    `org_id` VARCHAR(64) COMMENT '融资主体 ID',
+    `org_id` BIGINT(20) COMMENT '融资主体 ID',
     `financial_institution` VARCHAR(64) COMMENT '金融机构',
     `funding_mode` VARCHAR(64) COMMENT '融资方式',
     `funding_amount` BIGINT (20) COMMENT '融资金额，以分计算',
     `expected_disbursement_date` DATE COMMENT '预计放款日期',
-    `loan_renewal_from_id` VARCHAR(64) COMMENT '续贷来源 ID.0 表示非续贷',
+    `loan_renewal_from_id` BIGINT(20) COMMENT '续贷来源 ID.0 表示非续贷',
     `leader_name` VARCHAR(64) COMMENT '牵头领导名称',
-    `leader_id` VARCHAR(64) COMMENT '牵头领导 ID',
+    `leader_id` BIGINT(20) COMMENT '牵头领导 ID',
     `handler_name` VARCHAR(64) COMMENT '经办人名称',
-    `handler_id` VARCHAR(64) COMMENT '经办人 ID',
+    `handler_id` BIGINT(20) COMMENT '经办人 ID',
     `combined_ratio` DECIMAL(8, 4) COMMENT '综合成本率',
     `additional_costs` BIGINT (20) COMMENT '额外成本，以分计算',
     `status` TINYINT (2) COMMENT '状态. 0:待放款, 1:已放款, 2:已取消',
@@ -119,8 +119,8 @@ DROP TABLE IF EXISTS `fin_reserve_cost`;
 
 CREATE TABLE
   `fin_reserve_cost` (
-    `id` VARCHAR(64) COMMENT '储备融资成本 ID',
-    `reserve_id` VARCHAR(64) COMMENT '储备融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '储备融资成本 ID',
+    `reserve_id` BIGINT(20) COMMENT '储备融资 ID',
     `cost_type` VARCHAR(64) COMMENT '成本类型',
     `cost_description` VARCHAR(64) COMMENT '成本描述.可能是数字、百分比、文字',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0:否, 1:是',
@@ -136,8 +136,8 @@ DROP TABLE IF EXISTS `fin_reserve_progress`;
 
 CREATE TABLE
   `fin_reserve_progress` (
-    `id` VARCHAR(64) COMMENT '储备融资进度 ID',
-    `reserve_id` VARCHAR(64) COMMENT '储备融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '储备融资进度 ID',
+    `reserve_id` BIGINT(20) COMMENT '储备融资 ID',
     `progress_name` VARCHAR(64) COMMENT '进度名称',
     `plan_date` DATE COMMENT '计划日期',
     `actual_date` DATE COMMENT '实际日期',
@@ -153,8 +153,8 @@ DROP TABLE IF EXISTS `fin_reserve_report`;
 
 CREATE TABLE
   `fin_reserve_report` (
-    `id` VARCHAR(64) COMMENT '储备融资进度报告 ID',
-    `reserve_id` VARCHAR(64) COMMENT '储备融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '储备融资进度报告 ID',
+    `reserve_id` BIGINT(20) COMMENT '储备融资 ID',
     `report_content` VARCHAR(512) COMMENT '报告内容',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0:否, 1:是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -169,10 +169,10 @@ DROP TABLE IF EXISTS `fin_existing`;
 
 CREATE TABLE
   `fin_existing` (
-    `id` VARCHAR(64) COMMENT '存量融资 ID',
+    `id` BIGINT(20) COMMENT '存量融资 ID',
     `code` VARCHAR(64) COMMENT '存量融资编码. 编码规则: EF 开头，后面跟 yyMMddHHmmss',
-    `reserve_id` VARCHAR(64) COMMENT '储备融资 ID. 0 表示非储备融资转入',
-    `org_id` VARCHAR(64) COMMENT '融资主体 ID',
+    `reserve_id` BIGINT(20) COMMENT '储备融资 ID. 0 表示非储备融资转入',
+    `org_id` BIGINT(20) COMMENT '融资主体 ID',
     `org_code` VARCHAR(64) COMMENT '融资主体编码',
     `fin_name` VARCHAR(64) COMMENT '融资名称',
     `funding_structure` VARCHAR(64) COMMENT '融资结构',
@@ -188,7 +188,7 @@ CREATE TABLE
     `days_count_basis` TINYINT (2) COMMENT '计息基准',
     `include_settlement_date` TINYINT (1) DEFAULT 1 COMMENT '结息日当日是否计息. 0: 否, 1: 是',
     `repayment_delay_days` INT (11) DEFAULT 0 COMMENT '还款日相对于结息日的延迟天数',
-    `loan_renewal_from_id` VARCHAR(64) COMMENT '续贷来源 ID.0 表示非续贷',
+    `loan_renewal_from_id` BIGINT(20) COMMENT '续贷来源 ID.0 表示非续贷',
     `is_multiple` TINYINT (1) DEFAULT 0 COMMENT '是否为多次放款. 0: 否, 1: 是',
     `fin_term` INT (11) COMMENT '融资期限，以月为单位',
     `maturity_date` DATE COMMENT '融资到期日.即合同截止日，不是最后还款日',
@@ -206,8 +206,8 @@ DROP TABLE IF EXISTS `fin_existing_disbursement`;
 
 CREATE TABLE
   `fin_existing_disbursement` (
-    `id` VARCHAR(64) COMMENT '融资放款 ID',
-    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '融资放款 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
     `amount` BIGINT (20) COMMENT '放款金额，以分计算',
     `accounting_date` DATE COMMENT '到账日期',
     `disbursement_method` VARCHAR(64) COMMENT '放款方式',
@@ -227,9 +227,9 @@ DROP TABLE IF EXISTS `fin_existing_repayment_plan`;
 
 CREATE TABLE
   `fin_existing_repayment_plan` (
-    `id` VARCHAR(64) COMMENT '还本付息计划 ID',
-    `parent_version_id` VARCHAR(64) DEFAULT '0' COMMENT '上个版本的还本付息计划 ID. 0 表示没有父版本',
-    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '还本付息计划 ID',
+    `parent_version_id` BIGINT(20) DEFAULT '0' COMMENT '上个版本的还本付息计划 ID. 0 表示没有父版本',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
     `is_active` TINYINT (1) DEFAULT 1 COMMENT '是否为可用计划. 0: 否, 1: 是.一条放款记录只能有一个可用计划',
     `verify_comment` VARCHAR(512) COMMENT '审核意见',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
@@ -245,10 +245,10 @@ DROP TABLE IF EXISTS `fin_existing_repayment_plan_item`;
 
 CREATE TABLE
   `fin_existing_repayment_plan_item` (
-    `id` VARCHAR(64) COMMENT '还本付息明细 ID',
-    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
-    `disbursement_id` VARCHAR(64) COMMENT '融资放款 ID',
-    `repayment_plan_id` VARCHAR(64) COMMENT '还本付息计划 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '还本付息明细 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
+    `disbursement_id` BIGINT(20) COMMENT '融资放款 ID',
+    `repayment_plan_id` BIGINT(20) COMMENT '还本付息计划 ID',
     `period` INT (11) COMMENT '期数',
     `interest_settle_date` DATE COMMENT '结息日',
     `interest_calculate_date` INT (11) COMMENT '计息天数',
@@ -275,10 +275,10 @@ DROP TABLE IF EXISTS `fin_existing_disbursement_repayment_plan_rel`;
 
 CREATE TABLE
   `fin_existing_disbursement_repayment_plan_rel` (
-    `id` VARCHAR(64) COMMENT '融资放款与还本付息计划关系 ID',
-    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
-    `disbursement_id` VARCHAR(64) COMMENT '融资放款 ID',
-    `repayment_plan_id` VARCHAR(64) COMMENT '还本付息计划 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '融资放款与还本付息计划关系 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
+    `disbursement_id` BIGINT(20) COMMENT '融资放款 ID',
+    `repayment_plan_id` BIGINT(20) COMMENT '还本付息计划 ID',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
@@ -292,13 +292,13 @@ DROP TABLE IF EXISTS `fin_existing_guarantee`;
 
 CREATE TABLE
   `fin_existing_guarantee` (
-    `id` VARCHAR(64) COMMENT '融资担保 ID',
-    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '融资担保 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
     `guarantee_type` VARCHAR(64) COMMENT '担保类型',
     `is_credit` TINYINT (1) COMMENT '是否为信用担保. 0: 否, 1: 是',
     `fee_rate` DECIMAL(8, 4) COMMENT '担保费率',
     `guarantee_bonus` BIGINT (20) COMMENT '保证金，以分计算',
-    `counter_guarantee_id` VARCHAR(64) DEFAULT '0' COMMENT '反担保的担保 ID. 0 表示这行记录是担保，而不是反担保',
+    `counter_guarantee_id` BIGINT(20) DEFAULT 0 COMMENT '反担保的担保 ID. 0 表示这行记录是担保，而不是反担保',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
@@ -312,8 +312,8 @@ DROP TABLE IF EXISTS `fin_existing_guarantee_asset`;
 
 CREATE TABLE
   `fin_existing_guarantee_asset` (
-    `id` VARCHAR(64) COMMENT '融资担保与担保物关系 ID',
-    `guarantee_id` VARCHAR(64) COMMENT '融资担保 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '融资担保与担保物关系 ID',
+    `guarantee_id` BIGINT(20) COMMENT '融资担保 ID',
     `asset_id` VARCHAR(64) COMMENT '担保物 ID',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -328,9 +328,9 @@ DROP TABLE IF EXISTS `fin_existing_linkage`;
 
 CREATE TABLE
   `fin_existing_linkage` (
-    `id` VARCHAR(64) COMMENT '融资勾稽 ID',
-    `existing_id` VARCHAR(64) COMMENT '存量融资 ID',
-    `reserve_id` VARCHAR(64) COMMENT '储备融资 ID',
+    `id` BIGINT(20) NOT NULL COMMENT '融资勾稽 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
+    `reserve_id` BIGINT(20) COMMENT '储备融资 ID',
     `linkage_amount` BIGINT (20) COMMENT '勾稽金额，以分计算',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -345,9 +345,9 @@ DROP TABLE IF EXISTS `asset_fixed`;
 
 CREATE TABLE
   `asset_fixed` (
-    `id` VARCHAR(64) COMMENT '固定资产ID',
+    `id` BIGINT(20) NOT NULL COMMENT '固定资产ID',
     `name` VARCHAR(128) COMMENT '固定资产名称',
-    `org_id` VARCHAR(64) NOT NULL COMMENT '所属组织ID',
+    `org_id` BIGINT(20) NOT NULL COMMENT '所属组织ID',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',

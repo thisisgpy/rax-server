@@ -20,7 +20,7 @@ export class SysOrgController {
     @ApiQuery({
         name: 'parentId',
         description: '父级组织ID',
-        type: String,
+        type: Number,
         required: true
     })
     @ApiRaxResponse({
@@ -28,7 +28,7 @@ export class SysOrgController {
         type: String
     })
     @Get('codegen')
-    async generateOrgCode(@Query('parentId') parentId: string): Promise<string> {
+    async generateOrgCode(@Query('parentId') parentId: number): Promise<string> {
         if (!parentId) {
             throw new RaxBizException('父级组织ID不能为空');
         }
@@ -68,14 +68,14 @@ export class SysOrgController {
     @ApiParam({
         name: 'id',
         description: '组织ID',
-        type: String
+        type: Number
     })
     @ApiRaxResponse({
         description: '删除成功',
         type: Boolean
     })
     @Get('remove/:id')
-    async remove(@Param('id') id: string): Promise<boolean> {
+    async remove(@Param('id') id: number): Promise<boolean> {
         return await this.sysOrgService.delete(id);
     }
 
@@ -86,14 +86,14 @@ export class SysOrgController {
     @ApiParam({
         name: 'id',
         description: '组织ID',
-        type: String
+        type: Number
     })
     @ApiRaxResponse({
         description: '获取成功',
         type: OrgTreeDto
     })
     @Get('tree/:id')
-    async getOrgTree(@Param('id') id: string): Promise<OrgTreeDto> {
+    async getOrgTree(@Param('id') id: number): Promise<OrgTreeDto> {
         return await this.sysOrgService.getOrgTree(id);
     }
 
@@ -104,14 +104,14 @@ export class SysOrgController {
     @ApiParam({
         name: 'id',
         description: '组织ID',
-        type: String
+        type: Number
     })
     @ApiRaxResponse({
         description: '获取成功',
         type: SysOrg
     })
     @Get('get/:id')
-    async getOrgById(@Param('id') id: string): Promise<SysOrg> {
+    async getOrgById(@Param('id') id: number): Promise<SysOrg> {
         return await this.sysOrgService.getOrgById(id);
     }
 

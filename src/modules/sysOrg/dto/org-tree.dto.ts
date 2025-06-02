@@ -4,9 +4,9 @@ import { ApiProperty } from '@nestjs/swagger';
 export class OrgTreeDto {
     @ApiProperty({
         description: '组织ID',
-        type: String
+        type: Number
     })
-    id: string;
+    id: number;
 
     @ApiProperty({
         description: '组织编码',
@@ -35,9 +35,9 @@ export class OrgTreeDto {
 
     @ApiProperty({
         description: '父级组织ID',
-        type: String
+        type: Number
     })
-    parentId: string;
+    parentId: number;
 
     @ApiProperty({
         description: '子组织列表',
