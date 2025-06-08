@@ -28,11 +28,12 @@ export class SysOrgController {
         type: String
     })
     @Get('codegen')
-    async generateOrgCode(@Query('parentId') parentId: number): Promise<string> {
-        if (!parentId) {
+    async generateOrgCode(@Query('parentId') parentId: string): Promise<string> {
+        const parentIdNum = parseInt(parentId);
+        if (!parentId || isNaN(parentIdNum)) {
             throw new RaxBizException('父级组织ID不能为空');
         }
-        return await this.sysOrgService.generateOrgCode(parentId);
+        return await this.sysOrgService.generateOrgCode(parentIdNum);
     }
 
     @ApiOperation({
@@ -75,8 +76,12 @@ export class SysOrgController {
         type: Boolean
     })
     @Get('remove/:id')
-    async remove(@Param('id') id: number): Promise<boolean> {
-        return await this.sysOrgService.delete(id);
+    async remove(@Param('id') id: string): Promise<boolean> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('组织ID必须是数字');
+        }
+        return await this.sysOrgService.delete(idNum);
     }
 
     @ApiOperation({
@@ -93,8 +98,12 @@ export class SysOrgController {
         type: OrgTreeDto
     })
     @Get('tree/:id')
-    async getOrgTree(@Param('id') id: number): Promise<OrgTreeDto> {
-        return await this.sysOrgService.getOrgTree(id);
+    async getOrgTree(@Param('id') id: string): Promise<OrgTreeDto> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('组织ID必须是数字');
+        }
+        return await this.sysOrgService.getOrgTree(idNum);
     }
 
     @ApiOperation({
@@ -111,8 +120,12 @@ export class SysOrgController {
         type: SysOrg
     })
     @Get('get/:id')
-    async getOrgById(@Param('id') id: number): Promise<SysOrg> {
-        return await this.sysOrgService.getOrgById(id);
+    async getOrgById(@Param('id') id: string): Promise<SysOrg> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('组织ID必须是数字');
+        }
+        return await this.sysOrgService.getOrgById(idNum);
     }
 
     @ApiOperation({

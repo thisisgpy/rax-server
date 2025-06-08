@@ -1,18 +1,24 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn, ValueTransformer } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+
+// 数字转换器，将 bigint 字符串转换为数字
+const numberTransformer: ValueTransformer = {
+    to: (value: number) => value,
+    from: (value: string) => parseInt(value, 10)
+};
 
 @Entity('sys_dict_item')
 export class SysDictItem {
     @ApiProperty({
         description: '字典项ID'
     })
-    @PrimaryColumn({ name: 'id', type: 'number', comment: '字典项ID' })
+    @PrimaryColumn({ name: 'id', type: 'bigint', comment: '字典项ID', transformer: numberTransformer })
     id: number;
 
     @ApiProperty({
         description: '字典ID'
     })
-    @Column({ name: 'dict_id', type: 'number', comment: '字典ID' })
+    @Column({ name: 'dict_id', type: 'bigint', comment: '字典ID', transformer: numberTransformer })
     dictId: number;
 
     @ApiProperty({
@@ -44,14 +50,14 @@ export class SysDictItem {
         description: '字典项排序',
         default: 0
     })
-    @Column({ name: 'sort', type: 'number', default: 0, comment: '字典项排序' })
+    @Column({ name: 'sort', type: 'int', default: 0, comment: '字典项排序' })
     sort: number;
 
     @ApiProperty({
         description: '父级字典项ID',
         default: 0
     })
-    @Column({ name: 'parent_id', type: 'number', default: 0, comment: '父级字典项ID. 0表示没有父级字典项' })
+    @Column({ name: 'parent_id', type: 'bigint', default: 0, comment: '父级字典项ID. 0表示没有父级字典项', transformer: numberTransformer })
     parentId: number;
 
     @ApiProperty({

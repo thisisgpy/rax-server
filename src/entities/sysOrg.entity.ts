@@ -1,5 +1,11 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, ValueTransformer } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+
+// 数字转换器，将 bigint 字符串转换为数字
+const numberTransformer: ValueTransformer = {
+    to: (value: number) => value,
+    from: (value: string) => parseInt(value, 10)
+};
 
 @Entity('sys_org')
 export class SysOrg {
@@ -9,8 +15,9 @@ export class SysOrg {
     })
     @PrimaryColumn({
         name: 'id',
-        type: 'number',
-        comment: '组织ID'
+        type: 'bigint',
+        comment: '组织ID',
+        transformer: numberTransformer
     })
     id: number;
 
@@ -75,9 +82,10 @@ export class SysOrg {
     })
     @Column({
         name: 'parent_id',
-        type: 'number',
+        type: 'bigint',
         default: 0,
-        comment: '父级组织ID. 0表示没有父组织'
+        comment: '父级组织ID. 0表示没有父组织',
+        transformer: numberTransformer
     })
     parentId: number;
 

@@ -409,7 +409,7 @@ export class SysOrgService {
         // 1. 先获取所有顶级组织
         const rootOrgs = await this.sysOrgRepository
             .createQueryBuilder('org')
-            .where('org.parent_id = :parentId', { parentId: '0' })
+            .where('org.parent_id = :parentId', { parentId: 0 })
             .orderBy('org.code', 'ASC')
             .getMany();
 

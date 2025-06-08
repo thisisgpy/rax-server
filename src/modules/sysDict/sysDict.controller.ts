@@ -11,6 +11,7 @@ import { UpdateDictItemDto } from './dto/update-dict-item.dto';
 import { DictItemTreeDto } from './dto/dict-item-tree.dto';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { ApiRaxResponse } from '../../common/decorators/api-response.decorator';
+import { RaxBizException } from '../../common/exceptions/rax-biz.exception';
 
 @ApiTags('数据字典管理')
 @Controller('api/v1/dict')
@@ -56,8 +57,12 @@ export class SysDictController {
         type: Boolean
     })
     @Get('remove/:id')
-    async remove(@Param('id') id: number): Promise<void> {
-        await this.sysDictService.remove(id);
+    async remove(@Param('id') id: string): Promise<void> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('字典ID必须是数字');
+        }
+        await this.sysDictService.remove(idNum);
     }
 
     @ApiOperation({
@@ -73,8 +78,12 @@ export class SysDictController {
         type: SysDict
     })
     @Get('get/:id')
-    async findOne(@Param('id') id: number): Promise<SysDict> {
-        return await this.sysDictService.findOne(id);
+    async findOne(@Param('id') id: string): Promise<SysDict> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('字典ID必须是数字');
+        }
+        return await this.sysDictService.findOne(idNum);
     }
 
     @ApiOperation({
@@ -129,8 +138,12 @@ export class SysDictController {
         type: SysDictItem
     })
     @Get('item/get/:id')
-    async findDictItem(@Param('id') id: number): Promise<SysDictItem> {
-        return await this.sysDictService.findDictItem(id);
+    async findDictItem(@Param('id') id: string): Promise<SysDictItem> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('字典项ID必须是数字');
+        }
+        return await this.sysDictService.findDictItem(idNum);
     }
 
     @ApiOperation({
@@ -146,8 +159,12 @@ export class SysDictController {
         type: Boolean
     })
     @Get('item/remove/:id')
-    async removeDictItem(@Param('id') id: number): Promise<void> {
-        await this.sysDictService.removeDictItem(id);
+    async removeDictItem(@Param('id') id: string): Promise<void> {
+        const idNum = parseInt(id);
+        if (isNaN(idNum)) {
+            throw new RaxBizException('字典项ID必须是数字');
+        }
+        await this.sysDictService.removeDictItem(idNum);
     }
 
     @ApiOperation({
@@ -171,9 +188,9 @@ export class SysDictController {
     @Get('item/tree/:code/:onlyEnabled')
     async findDictItemTreeByCode(
         @Param('code') code: string,
-        @Param('onlyEnabled') onlyEnabled: boolean = true
+        @Param('onlyEnabled') onlyEnabled: string = 'true'
     ): Promise<DictItemTreeDto> {
-        const showOnlyEnabled = onlyEnabled;
+        const showOnlyEnabled = onlyEnabled === 'true';
         return await this.sysDictService.findDictItemTreeByCode(code, showOnlyEnabled);
     }
 } 

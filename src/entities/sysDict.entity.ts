@@ -1,12 +1,18 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn, ValueTransformer } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+
+// 数字转换器，将 bigint 字符串转换为数字
+const numberTransformer: ValueTransformer = {
+    to: (value: number) => value,
+    from: (value: string) => parseInt(value, 10)
+};
 
 @Entity('sys_dict')
 export class SysDict {
     @ApiProperty({
         description: '字典ID'
     })
-    @PrimaryColumn({ name: 'id', type: 'number', comment: '字典ID' })
+    @PrimaryColumn({ name: 'id', type: 'bigint', comment: '字典ID', transformer: numberTransformer })
     id: number;
 
     @ApiProperty({
