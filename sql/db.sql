@@ -1,3 +1,89 @@
+-- 用户
+DROP TABLE IF EXISTS `sys_user`;
+
+CREATE TABLE
+  `sys_user` (
+    `id` BIGINT(20) NOT NULL COMMENT '用户ID',
+    `org_id` BIGINT(20) NOT NULL COMMENT '组织ID',
+    `mobile` VARCHAR(11) NOT NULL COMMENT '手机号',
+    `name` VARCHAR(64) NOT NULL COMMENT '用户名称',
+    `gender` VARCHAR(8) DEFAULT '男' COMMENT '性别. 男, 女',
+    `id_card` VARCHAR(18) COMMENT '身份证号',
+    `password` VARCHAR(256) NOT NULL COMMENT '密码',
+    `is_init_password` TINYINT(1) DEFAULT 0 COMMENT '是否初始化密码. 0:否, 1:是',
+    `status` TINYINT(2) DEFAULT 1 COMMENT '状态. 0:禁用, 1:启用',
+    `is_deleted` TINYINT(1) DEFAULT 0 COMMENT '是否删除. 0:否, 1:是',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
+    `update_by` VARCHAR(32) COMMENT '信息更新人',
+    PRIMARY KEY `pk_user_id` (`id`)
+  );
+
+-- 角色
+DROP TABLE IF EXISTS `sys_role`;
+
+CREATE TABLE
+  `sys_role` (
+    `id` BIGINT(20) NOT NULL COMMENT '角色ID',
+    `code` VARCHAR(64) NOT NULL COMMENT '角色编码',
+    `name` VARCHAR(64) NOT NULL COMMENT '角色名称',
+    `comment` VARCHAR(128) COMMENT '角色备注',
+    `is_deleted` TINYINT(1) DEFAULT 0 COMMENT '是否删除. 0:否, 1:是',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
+    `update_by` VARCHAR(32) COMMENT '信息更新人',
+    PRIMARY KEY `pk_role_id` (`id`)
+  );
+
+-- 用户角色关系
+DROP TABLE IF EXISTS `sys_user_role`;
+
+CREATE TABLE
+  `sys_user_role` (
+    `id` BIGINT(20) NOT NULL COMMENT '用户角色关系ID',
+    `user_id` BIGINT(20) NOT NULL COMMENT '用户ID',
+    `role_id` BIGINT(20) NOT NULL COMMENT '角色ID',
+    PRIMARY KEY `pk_user_role_id` (`id`)
+  );
+
+-- 资源
+DROP TABLE IF EXISTS `sys_resource`;
+
+CREATE TABLE
+  `sys_resource` (
+    `id` BIGINT(20) NOT NULL COMMENT '资源ID',
+    `code` VARCHAR(64) NOT NULL COMMENT '资源编码',
+    `name` VARCHAR(64) NOT NULL COMMENT '资源名称',
+    `type` TINYINT(2) DEFAULT 0 COMMENT '资源类型. 0:目录, 1:菜单, 2:按钮',
+    `parent_id` BIGINT(20) DEFAULT 0 COMMENT '父级资源ID. 0表示没有父级资源',
+    `path` VARCHAR(128) COMMENT '资源路径',
+    `component` VARCHAR(128) COMMENT '资源组件',
+    `icon` VARCHAR(64) COMMENT '资源图标',
+    `sort` INT(11) DEFAULT 0 COMMENT '资源排序',
+    `is_hidden` TINYINT(1) DEFAULT 0 COMMENT '是否隐藏. 0:否, 1:是',
+    `is_keep_alive` TINYINT(1) DEFAULT 0 COMMENT '是否缓存. 0:否, 1:是',
+    `is_external_link` TINYINT(1) DEFAULT 0 COMMENT '是否外部链接. 0:否, 1:是',
+    `is_deleted` TINYINT(1) DEFAULT 0 COMMENT '是否删除. 0:否, 1:是',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
+    `update_by` VARCHAR(32) COMMENT '信息更新人',
+    PRIMARY KEY `pk_resource_id` (`id`)
+  );
+
+-- 角色资源关系
+DROP TABLE IF EXISTS `sys_role_resource`;
+
+CREATE TABLE
+  `sys_role_resource` (
+    `id` BIGINT(20) NOT NULL COMMENT '角色资源关系ID',
+    `role_id` BIGINT(20) NOT NULL COMMENT '角色ID',
+    `resource_id` BIGINT(20) NOT NULL COMMENT '资源ID',
+    PRIMARY KEY `pk_role_resource_id` (`id`)
+  );
+
 -- 组织
 DROP TABLE IF EXISTS `sys_org`;
 

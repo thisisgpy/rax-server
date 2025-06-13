@@ -447,13 +447,20 @@ export class SysDictService {
      * @returns 子项列表
      */
     private async getItemChildren(dictId: number, itemParentId: number, onlyEnabled: boolean = true): Promise<DictItemTreeDto[]> {
+        // 构建查询条件
+        const whereCondition: any = {
+            dictId,
+            parentId: itemParentId
+        };
+        
+        // 只有当 onlyEnabled 为 true 时才添加 isEnabled 条件
+        if (onlyEnabled) {
+            whereCondition.isEnabled = true;
+        }
+
         // 查询 dictId 下所有 parentId 为 itemParentId 的子项
         const subItems = await this.sysDictItemRepository.find({
-            where: {
-                dictId,
-                parentId: itemParentId,
-                isEnabled: onlyEnabled ? true : undefined
-            },
+            where: whereCondition,
             order: {
                 sort: 'ASC',
                 id: 'ASC'  // 当 sort 相同时，使用 id 排序确保顺序稳定
@@ -469,7 +476,7 @@ export class SysDictService {
                 comment: item.comment,
                 sort: item.sort,
                 isEnabled: item.isEnabled,
-                children: await this.getItemChildren(dictId, item.id)  // 递归查询子项
+                children: await this.getItemChildren(dictId, item.id, onlyEnabled)  // 递归查询子项，传递 onlyEnabled 参数
             };
             return node;
         }));

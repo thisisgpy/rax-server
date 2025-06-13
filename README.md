@@ -1,98 +1,192 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# RAX Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+基于 NestJS + TypeORM + MySQL 的企业级后端服务框架
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 技术栈
 
-## Description
+- **框架**: NestJS 10.x
+- **数据库**: MySQL 8.x
+- **ORM**: TypeORM
+- **语言**: TypeScript
+- **包管理**: pnpm
+- **API文档**: Swagger
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 核心功能模块
 
-## Project setup
+### 🔐 RBAC 权限管理系统
 
-```bash
-$ pnpm install
+基于角色的访问控制（Role-Based Access Control）系统，包含以下模块：
+
+#### UserModule - 用户管理
+- ✅ 用户的 CRUD 操作
+- ✅ 用户信息管理
+- ✅ 用户状态管理（启用/禁用）
+- ✅ 密码管理（修改密码、重置密码）
+- ✅ 密码加密存储（bcrypt + salt）
+
+**API 端点:**
+- `POST /api/v1/user/create` - 创建用户
+- `POST /api/v1/user/edit` - 更新用户
+- `GET /api/v1/user/remove/:id` - 删除用户
+- `GET /api/v1/user/get/:id` - 获取用户详情
+- `POST /api/v1/user/list` - 分页查询用户
+- `POST /api/v1/user/reset-password/:id` - 重置密码
+- `POST /api/v1/user/change-password/:id` - 修改密码
+
+#### RoleModule - 角色管理
+- ✅ 角色的 CRUD 操作
+- ✅ 角色信息管理
+- ✅ 角色编码管理
+
+#### PermissionModule - 权限管理 ⭐
+- ✅ 用户角色分配/取消
+- ✅ 角色资源权限分配/取消
+- ✅ 用户权限查询（通过角色获取资源）
+- ✅ 权限验证逻辑
+
+**核心方法:**
+- `assignUserRoles()` - 分配用户角色
+- `assignRoleResources()` - 分配角色资源权限
+- `getUserPermissions()` - 获取用户权限
+- `hasPermission()` - 检查用户权限
+- `getUserMenus()` - 获取用户菜单权限
+
+### 🏢 组织管理系统
+
+#### SysOrgModule - 组织管理
+- ✅ 层级组织结构管理
+- ✅ 组织编码自动生成（4位一级：0001, 00010001, 000100010001）
+- ✅ 组织树形结构查询
+
+### 📚 数据字典系统
+
+#### SysDictModule - 字典管理
+- ✅ 数据字典管理
+- ✅ 字典项层级管理
+- ✅ 字典项树形结构
+
+### 🏦 银行信息系统
+
+#### SysBankModule - 银行管理
+- ✅ 银行信息管理
+- ✅ 联行号查询
+
+## 数据库设计
+
+### RBAC 核心表结构
+
+```sql
+-- 用户表
+sys_user (id, org_id, mobile, name, gender, password, salt, status, ...)
+
+-- 角色表  
+sys_role (id, code, name, comment, ...)
+
+-- 资源表
+sys_resource (id, code, name, type, parent_id, path, component, ...)
+
+-- 用户角色关系表
+sys_user_role (id, user_id, role_id)
+
+-- 角色资源关系表
+sys_role_resource (id, role_id, resource_id)
 ```
 
-## Compile and run the project
+## 安装和运行
 
+### 环境要求
+- Node.js >= 18.x
+- MySQL >= 8.0
+- pnpm >= 8.x
+
+### 安装依赖
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
 ```
 
-## Run tests
+### 配置环境变量
+复制 `.env.example` 到 `.env` 并配置数据库连接信息：
 
-```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+```env
+# 数据库配置
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=your_password
+DB_DATABASE=rax_server
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 运行应用
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# 开发模式
+pnpm run start:dev
+
+# 生产模式
+pnpm run start:prod
+
+# 构建
+pnpm run build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 核心特性
 
-## Resources
+### ✨ 统一响应格式
+所有 API 返回统一的响应格式：
+```json
+{
+  "success": true,
+  "message": "操作成功",
+  "data": {...}
+}
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 🛡️ 全局异常处理
+- 业务异常：`RaxBizException`
+- 统一错误响应格式
+- 详细错误日志记录
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 🔢 数据类型安全
+- 所有 ID 字段统一使用 `number` 类型
+- BigInt 字段自动转换为数字类型
+- Snowflake ID 生成器确保唯一性
 
-## Support
+### 📄 分页查询
+- 统一的分页查询基类 `PageQueryDto`
+- 标准分页响应格式 `PageResult<T>`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### ✅ 参数验证
+- 使用 `class-validator` 进行参数验证
+- 详细的验证错误信息
+- 自动类型转换和验证
 
-## Stay in touch
+## 开发进度
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### ✅ 已完成
+- [x] 基础框架搭建
+- [x] 数据库连接配置
+- [x] 全局异常处理
+- [x] 统一响应拦截器
+- [x] Snowflake ID 生成器
+- [x] 组织管理模块
+- [x] 数据字典模块
+- [x] 银行信息模块
+- [x] 用户管理模块
+- [x] 角色管理模块
+- [x] 权限管理模块
+- [x] RBAC 权限体系
 
-## License
+### 🚧 开发中
+- [ ] 资源管理模块
+- [ ] 认证模块（JWT）
+- [ ] 权限守卫
+- [ ] API 文档完善
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### 📋 待开发
+- [ ] 文件上传模块
+- [ ] 日志审计模块
+- [ ] 系统监控
+- [ ] 单元测试
+
+## 许可证
+
+MIT License

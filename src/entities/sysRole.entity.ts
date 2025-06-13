@@ -1,23 +1,23 @@
 import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { numberTransformer } from '../common/utils/transformers';
+import { numberTransformer, booleanTransformer } from '../common/utils/transformers';
 
-@Entity('sys_org')
-export class SysOrg {
+@Entity('sys_role')
+export class SysRole {
     @ApiProperty({
-        description: '组织ID',
+        description: '角色ID',
         type: Number
     })
     @PrimaryColumn({
         name: 'id',
         type: 'bigint',
-        comment: '组织ID',
+        comment: '角色ID',
         transformer: numberTransformer
     })
     id: number;
 
     @ApiProperty({
-        description: '组织编码',
+        description: '角色编码',
         type: String,
         maxLength: 64
     })
@@ -25,12 +25,12 @@ export class SysOrg {
         name: 'code',
         type: 'varchar',
         length: 64,
-        comment: '组织编码. 4位一级. 0001,00010001,000100010001,以此类推'
+        comment: '角色编码'
     })
     code: string;
 
     @ApiProperty({
-        description: '组织名称',
+        description: '角色名称',
         type: String,
         maxLength: 64
     })
@@ -38,25 +38,12 @@ export class SysOrg {
         name: 'name',
         type: 'varchar',
         length: 64,
-        comment: '组织名称'
+        comment: '角色名称'
     })
     name: string;
 
     @ApiProperty({
-        description: '组织名称简称',
-        type: String,
-        maxLength: 64
-    })
-    @Column({
-        name: 'name_abbr',
-        type: 'varchar',
-        length: 64,
-        comment: '组织名称简称'
-    })
-    nameAbbr: string;
-
-    @ApiProperty({
-        description: '组织备注',
+        description: '角色备注',
         type: String,
         maxLength: 128,
         required: false
@@ -66,23 +53,22 @@ export class SysOrg {
         type: 'varchar',
         length: 128,
         nullable: true,
-        comment: '组织备注'
+        comment: '角色备注'
     })
-    comment: string;
+    comment?: string;
 
     @ApiProperty({
-        description: '父级组织ID',
-        type: Number,
-        default: 0
+        description: '是否删除',
+        type: Boolean,
+        default: false
     })
     @Column({
-        name: 'parent_id',
-        type: 'bigint',
+        name: 'is_deleted',
         default: 0,
-        comment: '父级组织ID. 0表示没有父组织',
-        transformer: numberTransformer
+        comment: '是否删除. 0:否, 1:是',
+        transformer: booleanTransformer
     })
-    parentId: number;
+    isDeleted: boolean;
 
     @ApiProperty({
         description: '创建时间',
@@ -132,5 +118,5 @@ export class SysOrg {
         nullable: true,
         comment: '信息更新人'
     })
-    updateBy: string;
+    updateBy?: string;
 } 

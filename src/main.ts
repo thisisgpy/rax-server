@@ -25,16 +25,40 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
     // 启用详细错误信息
     disableErrorMessages: false,
-    // 验证失败时停止第一个错误
+    // 验证失败时不停止第一个错误，收集所有错误
     stopAtFirstError: false,
     // 自定义错误消息格式
     exceptionFactory: (errors) => {
-      const result = errors.map((error) => {
-        const constraints = error.constraints;
-        const messages = constraints ? Object.values(constraints) : [];
-        return `${error.property} ${messages.join(', ')}`;
-      });
-      return new BadRequestException(result);
+      const formatErrors = (validationErrors: any[]): string[] => {
+        const result: string[] = [];
+        
+        validationErrors.forEach((error) => {
+          const property = error.property;
+          const constraints = error.constraints;
+          
+          if (constraints) {
+            const messages = Object.values(constraints) as string[];
+            messages.forEach(msg => {
+              result.push(`${property}: ${msg}`);
+            });
+          }
+          
+          // 处理嵌套对象的验证错误
+          if (error.children && error.children.length > 0) {
+            const childrenErrors = formatErrors(error.children);
+            childrenErrors.forEach(childError => {
+              result.push(`${property}.${childError}`);
+            });
+          }
+        });
+        
+        return result;
+      };
+      
+      const errorMessages = formatErrors(errors);
+      const message = errorMessages.join('; ');
+      
+      return new BadRequestException(message);
     }
   }));
 

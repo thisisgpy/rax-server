@@ -11,6 +11,9 @@ import { AuthMiddleware } from './common/middleware/auth.middleware';
 import { SysDictModule } from './modules/sysDict/sysDict.module';
 import { SysBankModule } from './modules/sysBank/sysBank.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { UserModule } from './modules/user/user.module';
+import { RoleModule } from './modules/role/role.module';
+import { PermissionModule } from './modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { LoggerModule } from './common/logger/logger.module';
     SysDictModule,
     SysBankModule,
     LoggerModule,
+    UserModule,
+    RoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

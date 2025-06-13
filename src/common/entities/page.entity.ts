@@ -1,4 +1,36 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsNumber, Min, Max } from 'class-validator';
+
+/**
+ * 通用分页查询DTO
+ */
+export class PageQueryDto {
+    @ApiProperty({
+        description: '当前页码',
+        type: Number,
+        minimum: 1,
+        default: 1,
+        required: false
+    })
+    @IsOptional()
+    @IsNumber({}, { message: '页码必须是数字' })
+    @Min(1, { message: '页码必须大于0' })
+    pageNo?: number = 1;
+
+    @ApiProperty({
+        description: '每页显示记录数',
+        type: Number,
+        minimum: 1,
+        maximum: 100,
+        default: 10,
+        required: false
+    })
+    @IsOptional()
+    @IsNumber({}, { message: '每页记录数必须是数字' })
+    @Min(1, { message: '每页记录数必须大于0' })
+    @Max(100, { message: '每页记录数不能超过100' })
+    pageSize?: number = 10;
+}
 
 /**
  * 通用分页响应实体

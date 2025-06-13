@@ -1,11 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn, ValueTransformer } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-
-// 数字转换器，将 bigint 字符串转换为数字
-const numberTransformer: ValueTransformer = {
-    to: (value: number) => value,
-    from: (value: string) => parseInt(value, 10)
-};
+import { numberTransformer, booleanTransformer } from '../common/utils/transformers';
 
 @Entity('sys_dict')
 export class SysDict {
@@ -40,7 +35,12 @@ export class SysDict {
         description: '是否启用',
         default: true
     })
-    @Column({ name: 'is_enabled', default: true, comment: '是否启用. 0: 禁用, 1: 启用' })
+    @Column({ 
+        name: 'is_enabled', 
+        default: true, 
+        comment: '是否启用. 0: 禁用, 1: 启用', 
+        transformer: booleanTransformer 
+    })
     isEnabled: boolean;
 
     @ApiProperty({
