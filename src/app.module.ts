@@ -14,6 +14,8 @@ import { LoggerModule } from './common/logger/logger.module';
 import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
 import { PermissionModule } from './modules/permission/permission.module';
+import { AssetFixedModule } from './modules/assetFixed/assetFixed.module';
+import { AttachmentModule } from './modules/attachment/attachment.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { PermissionModule } from './modules/permission/permission.module';
     UserModule,
     RoleModule,
     PermissionModule,
+    AssetFixedModule,
+    AttachmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

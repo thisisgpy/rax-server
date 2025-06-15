@@ -166,7 +166,7 @@ CREATE TABLE
     `saved_name` VARCHAR(128) COMMENT '存储文件名',
     `extension` VARCHAR(32) COMMENT '文件扩展名',
     `file_size` BIGINT(20) COMMENT '文件大小. 以byte为单位',
-    `status` TINYINT(2) DEFAULT 0 COMMENT '文件状态',
+    `is_deleted` TINYINT(1) DEFAULT 0 COMMENT '是否删除. 0:否, 1:是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
     PRIMARY KEY `pk_attachment_id` (`id`)
@@ -314,10 +314,7 @@ DROP TABLE IF EXISTS `fin_existing_repayment_plan`;
 CREATE TABLE
   `fin_existing_repayment_plan` (
     `id` BIGINT(20) NOT NULL COMMENT '还本付息计划 ID',
-    `parent_version_id` BIGINT(20) DEFAULT '0' COMMENT '上个版本的还本付息计划 ID. 0 表示没有父版本',
     `existing_id` BIGINT(20) COMMENT '存量融资 ID',
-    `is_active` TINYINT (1) DEFAULT 1 COMMENT '是否为可用计划. 0: 否, 1: 是.一条放款记录只能有一个可用计划',
-    `verify_comment` VARCHAR(512) COMMENT '审核意见',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
@@ -401,6 +398,7 @@ CREATE TABLE
     `id` BIGINT(20) NOT NULL COMMENT '融资担保与担保物关系 ID',
     `guarantee_id` BIGINT(20) COMMENT '融资担保 ID',
     `asset_id` BIGINT(20) COMMENT '担保物 ID',
+    `comment` VARCHAR(256) COMMENT '备注',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
