@@ -2,9 +2,11 @@ import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { SysUser } from '../../entities/sysUser.entity';
+import { SysOrg } from '../../entities/sysOrg.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { PageResult } from '../../common/entities/page.entity';
 import { RaxBizException } from '../../common/exceptions/rax-biz.exception';
 import { SNOWFLAKE } from '../../common/providers';
@@ -17,6 +19,8 @@ export class UserService {
     constructor(
         @InjectRepository(SysUser)
         private readonly userRepository: Repository<SysUser>,
+        @InjectRepository(SysOrg)
+        private readonly sysOrgRepository: Repository<SysOrg>,
         @Inject(SNOWFLAKE)
         private readonly snowflake: Snowflake,
         @Inject('UserContext')
@@ -34,10 +38,12 @@ export class UserService {
         if (existingUser) {
             throw new RaxBizException('手机号已存在');
         }
-
+        
+        // 无论用户提交什么密码，都使用默认密码
+        const defaultUserPassword = process.env.DEFAULT_USER_PASSWORD || '123456';
         // 生成加密密码（bcrypt 自动管理 salt）
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(createUserDto.password, saltRounds);
+        const hashedPassword = await bcrypt.hash(defaultUserPassword, saltRounds);
 
         // 创建用户对象
         const user = this.userRepository.create({
@@ -106,16 +112,37 @@ export class UserService {
     /**
      * 根据ID获取用户（不包含敏感信息）
      */
-    async findById(id: number): Promise<SysUser> {
-        const user = await this.userRepository.findOne({
-            where: { id, isDeleted: false }
-        });
-        if (!user) {
+    async findById(id: number): Promise<UserResponseDto> {
+        const queryBuilder = this.userRepository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('sys_org', 'org', 'user.org_id = org.id')
+            .select([
+                'user.id',
+                'user.org_id',
+                'user.mobile',
+                'user.name',
+                'user.gender',
+                'user.id_card',
+                'user.is_init_password',
+                'user.status',
+                'user.is_deleted',
+                'user.create_time',
+                'user.create_by',
+                'user.update_time',
+                'user.update_by',
+                'org.name',
+                'org.name_abbr'
+            ])
+            .where('user.id = :id', { id })
+            .andWhere('user.is_deleted = :isDeleted', { isDeleted: false });
+
+        const result = await queryBuilder.getRawOne();
+
+        if (!result) {
             throw new RaxBizException(`用户不存在: ${id}`);
         }
-        // 清空敏感信息后返回
-        user.password = '';
-        return user;
+
+        return this.convertToResponseDto(result);
     }
 
     /**
@@ -143,11 +170,29 @@ export class UserService {
     /**
      * 分页查询用户
      */
-    async findPage(queryDto: QueryUserDto): Promise<PageResult<SysUser>> {
+    async findPage(queryDto: QueryUserDto): Promise<PageResult<UserResponseDto>> {
         const { pageNo = 1, pageSize = 10, ...conditions } = queryDto;
         
         const queryBuilder = this.userRepository
             .createQueryBuilder('user')
+            .leftJoinAndSelect('sys_org', 'org', 'user.org_id = org.id')
+            .select([
+                'user.id',
+                'user.org_id',
+                'user.mobile',
+                'user.name',
+                'user.gender',
+                'user.id_card',
+                'user.is_init_password',
+                'user.status',
+                'user.is_deleted',
+                'user.create_time',
+                'user.create_by',
+                'user.update_time',
+                'user.update_by',
+                'org.name',
+                'org.name_abbr'
+            ])
             .where('user.is_deleted = :isDeleted', { isDeleted: false });
 
         // 添加查询条件
@@ -164,15 +209,20 @@ export class UserService {
             queryBuilder.andWhere('user.status = :status', { status: conditions.status });
         }
 
-        // 分页和排序
+        // 获取总数
         const total = await queryBuilder.getCount();
-        const users = await queryBuilder
+        
+        // 分页和排序
+        const rawResults = await queryBuilder
             .orderBy('user.create_time', 'DESC')
             .skip((pageNo - 1) * pageSize)
             .take(pageSize)
-            .getMany();
+            .getRawMany();
 
-        return PageResult.of(pageNo, pageSize, total, users);
+        // 转换为响应DTO
+        const userList = rawResults.map(raw => this.convertToResponseDto(raw));
+
+        return PageResult.of(pageNo, pageSize, total, userList);
     }
 
     /**
@@ -219,5 +269,30 @@ export class UserService {
 
         await this.userRepository.save(user);
         return true;
+    }
+
+    /**
+     * 转换查询结果为响应DTO
+     * @param raw 原始查询结果
+     * @returns 响应DTO
+     */
+    private convertToResponseDto(raw: any): UserResponseDto {
+        const dto = new UserResponseDto();
+        dto.id = raw.user_id;
+        dto.orgId = raw.org_id;
+        dto.orgName = raw.org_name || '';
+        dto.orgNameAbbr = raw.name_abbr || '';
+        dto.mobile = raw.user_mobile;
+        dto.name = raw.user_name;
+        dto.gender = raw.user_gender;
+        dto.idCard = raw.id_card;
+        dto.isInitPassword = Boolean(raw.is_init_password);
+        dto.status = raw.user_status;
+        dto.isDeleted = Boolean(raw.user_is_deleted);
+        dto.createTime = raw.create_time;
+        dto.createBy = raw.create_by;
+        dto.updateTime = raw.update_time;
+        dto.updateBy = raw.update_by;
+        return dto;
     }
 } 

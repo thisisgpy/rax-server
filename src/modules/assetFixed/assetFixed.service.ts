@@ -158,10 +158,8 @@ export class AssetFixedService {
         if (!result) {
             throw new RaxBizException(`固定资产不存在: ${id}`);
         }
-        console.log(result);
 
         const responseDto = this.convertToResponseDto(result);
-        console.log(responseDto);
         this.logger.info(this.CONTEXT, `查询固定资产详情成功: ID=${id}`);
         return responseDto;
     }
@@ -228,14 +226,14 @@ export class AssetFixedService {
         const dto = new AssetFixedResponseDto();
         dto.id = raw.asset_id;
         dto.name = raw.asset_name;
-        dto.orgId = raw.asset_org_id;
+        dto.orgId = raw.org_id;
         dto.orgName = raw.org_name || '';
         dto.orgNameAbbr = raw.name_abbr || '';
-        dto.isDeleted = Boolean(raw.asset_is_deleted);
-        dto.createTime = raw.asset_create_time;
-        dto.createBy = raw.asset_create_by;
-        dto.updateTime = raw.asset_update_time;
-        dto.updateBy = raw.asset_update_by;
+        dto.isDeleted = Boolean(raw.is_deleted);
+        dto.createTime = raw.create_time;
+        dto.createBy = raw.create_by;
+        dto.updateTime = raw.update_time;
+        dto.updateBy = raw.update_by;
         return dto;
     }
 } 

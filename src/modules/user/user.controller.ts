@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { SysUser } from '../../entities/sysUser.entity';
 import { PageResult } from '../../common/entities/page.entity';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
@@ -78,10 +79,10 @@ export class UserController {
     })
     @ApiRaxResponse({
         description: '获取成功',
-        type: SysUser
+        type: UserResponseDto
     })
     @Get('get/:id')
-    async findById(@Param('id') id: string): Promise<SysUser> {
+    async findById(@Param('id') id: string): Promise<UserResponseDto> {
         const idNum = parseInt(id);
         if (isNaN(idNum)) {
             throw new RaxBizException('用户ID必须是数字');
@@ -95,10 +96,10 @@ export class UserController {
     })
     @ApiRaxResponse({
         description: '查询成功',
-        type: PageResult<SysUser>
+        type: PageResult<UserResponseDto>
     })
     @Post('list')
-    async findPage(@Body() queryDto: QueryUserDto): Promise<PageResult<SysUser>> {
+    async findPage(@Body() queryDto: QueryUserDto): Promise<PageResult<UserResponseDto>> {
         return await this.userService.findPage(queryDto);
     }
 

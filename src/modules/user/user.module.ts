@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { SysUser } from '../../entities/sysUser.entity';
+import { SysOrg } from '../../entities/sysOrg.entity';
 import { SnowflakeModule } from '../../common/providers/snowflake.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([SysUser]),
+        TypeOrmModule.forFeature([SysUser, SysOrg]),
         SnowflakeModule
     ],
     controllers: [UserController],
