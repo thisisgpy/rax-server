@@ -172,6 +172,20 @@ CREATE TABLE
     PRIMARY KEY `pk_attachment_id` (`id`)
   );
 
+-- 非银行金融机构
+DROP TABLE IF EXISTS `fin_non_bank_institution`;
+
+CREATE TABLE
+  `fin_non_bank_institution` (
+    `id` BIGINT(20) NOT NULL COMMENT '非银行金融机构 ID',
+    `province` VARCHAR(16) COMMENT '省份',
+    `city` VARCHAR(16) COMMENT '城市',
+    `name` VARCHAR(64) COMMENT '非银行金融机构全称',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    PRIMARY KEY `pk_non_bank_institution_id` (`id`)
+  );
+
 -- 储备融资
 DROP TABLE IF EXISTS `fin_reserve`;
 
@@ -180,7 +194,9 @@ CREATE TABLE
     `id` BIGINT(20) NOT NULL COMMENT '储备融资 ID',
     `code` VARCHAR(64) COMMENT '储备融资编码.编码规则: RF 开头，后面跟 yyMMddHHmmss',
     `org_id` BIGINT(20) COMMENT '融资主体 ID',
-    `financial_institution` VARCHAR(64) COMMENT '金融机构',
+    `institution_type` TINYINT(2) COMMENT '金融机构类型. 1: 银行, 2: 非银行金融机构',
+    `financial_institution_id` BIGINT(20) COMMENT '金融机构 ID',
+    `financial_institution_name` VARCHAR(64) COMMENT '金融机构名称',
     `funding_mode` VARCHAR(64) COMMENT '融资方式',
     `funding_amount` BIGINT (20) COMMENT '融资金额，以分计算',
     `expected_disbursement_date` DATE COMMENT '预计放款日期',
@@ -263,7 +279,9 @@ CREATE TABLE
     `fin_name` VARCHAR(64) COMMENT '融资名称',
     `funding_structure` VARCHAR(64) COMMENT '融资结构',
     `funding_mode` VARCHAR(64) COMMENT '融资方式',
-    `financial_institution` VARCHAR(64) COMMENT '金融机构',
+    `institution_type` TINYINT(2) COMMENT '金融机构类型. 1: 银行, 2: 非银行金融机构',
+    `financial_institution_id` BIGINT(20) COMMENT '金融机构 ID',
+    `financial_institution_name` VARCHAR(64) COMMENT '金融机构名称',
     `funding_amount` BIGINT (20) COMMENT '融资总额，以分计算',
     `return_interest_rate` DECIMAL(8, 4) COMMENT '回报利率',
     `repayment_period` TINYINT (2) COMMENT '还款周期',
@@ -336,12 +354,29 @@ CREATE TABLE
     `interest_settle_date` DATE COMMENT '结息日',
     `interest_calculate_date` INT (11) COMMENT '计息天数',
     `repayment_date` DATE COMMENT '还款日期',
-    `actual_repayment_date` DATE COMMENT '实际还款日期',
     `confirm_repayment_date` DATE COMMENT '确认还款日期.即执行还款操作的具体日期',
     `repayment_status` TINYINT(2) DEFAULT 0 COMMENT  '还款状态. 0:待还款, 1:正常还款, 2:提前还款',
     `estimated_repayment_principal` BIGINT (20) COMMENT '预测还款本金，以分计算',
     `estimated_repayment_interest` BIGINT (20) COMMENT '预测还款利息，以分计算',
     `estimated_repayment_amount` BIGINT (20) COMMENT '预测还款总额，以分计算',
+    `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
+    `update_by` VARCHAR(32) COMMENT '信息更新人',
+    PRIMARY KEY `pk_fin_existing_repayment_plan_item_id` (`id`)
+  );
+
+-- 存量融资还本付息计划下的还款记录
+DROP TABLE IF EXISTS `fin_existing_repayment_record`;
+
+CREATE TABLE
+  `fin_existing_repayment_record` (
+    `id` BIGINT(20) NOT NULL COMMENT '还款记录 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
+    `repayment_plan_id` BIGINT(20) COMMENT '还本付息计划 ID',
+    `repayment_plan_item_id` BIGINT(20) COMMENT '还本付息明细 ID. 0 表示自由还款记录',
+    `actual_repayment_date` DATE COMMENT '实际还款日期',
     `actual_repayment_principal` BIGINT (20) COMMENT '实际还款本金，以分计算',
     `actual_repayment_interest` BIGINT (20) COMMENT '实际还款利息，以分计算',
     `actual_repayment_amount` BIGINT (20) COMMENT '实际还款总额，以分计算',
@@ -350,7 +385,7 @@ CREATE TABLE
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
     `update_by` VARCHAR(32) COMMENT '信息更新人',
-    PRIMARY KEY `pk_fin_existing_repayment_plan_item_id` (`id`)
+    PRIMARY KEY `pk_fin_existing_repayment_record_id` (`id`)
   );
 
 -- 存量融资放款与还本付息计划关系
@@ -362,9 +397,8 @@ CREATE TABLE
     `existing_id` BIGINT(20) COMMENT '存量融资 ID',
     `disbursement_id` BIGINT(20) COMMENT '融资放款 ID',
     `repayment_plan_id` BIGINT(20) COMMENT '还本付息计划 ID',
-    `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
+    `is_valid` TINYINT(1) DEFAULT 0 COMMENT '是否作废.0:否, 1:是',
+    `invalid_comment` VARCHAR(512) COMMENT '作废原因',
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
     `update_by` VARCHAR(32) COMMENT '信息更新人',
     PRIMARY KEY `pk_fin_existing_disbursement_repayment_plan_rel_id` (`id`)
