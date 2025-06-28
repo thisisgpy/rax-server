@@ -333,12 +333,28 @@ CREATE TABLE
   `fin_existing_repayment_plan` (
     `id` BIGINT(20) NOT NULL COMMENT '还本付息计划 ID',
     `existing_id` BIGINT(20) COMMENT '存量融资 ID',
+    `is_valid` TINYINT(1) DEFAULT 0 COMMENT '是否作废.0:否, 1:是',
+    `invalid_comment` VARCHAR(512) COMMENT '作废原因',
     `is_deleted` TINYINT (1) DEFAULT 0 COMMENT '是否删除. 0: 否, 1: 是',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人',
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
     `update_by` VARCHAR(32) COMMENT '信息更新人',
     PRIMARY KEY `pk_fin_existing_repayment_plan_id` (`id`)
+  );
+
+-- 存量融资放款与还本付息计划关系
+DROP TABLE IF EXISTS `fin_existing_disbursement_repayment_plan_rel`;
+
+CREATE TABLE
+  `fin_existing_disbursement_repayment_plan_rel` (
+    `id` BIGINT(20) NOT NULL COMMENT '融资放款与还本付息计划关系 ID',
+    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
+    `disbursement_id` BIGINT(20) COMMENT '融资放款 ID',
+    `repayment_plan_id` BIGINT(20) COMMENT '还本付息计划 ID',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
+    `update_by` VARCHAR(32) COMMENT '信息更新人',
+    PRIMARY KEY `pk_fin_existing_disbursement_repayment_plan_rel_id` (`id`)
   );
 
 -- 存量融资还本付息计划明细
@@ -353,9 +369,7 @@ CREATE TABLE
     `period` INT (11) COMMENT '期数',
     `interest_settle_date` DATE COMMENT '结息日',
     `interest_calculate_date` INT (11) COMMENT '计息天数',
-    `repayment_date` DATE COMMENT '还款日期',
-    `confirm_repayment_date` DATE COMMENT '确认还款日期.即执行还款操作的具体日期',
-    `repayment_status` TINYINT(2) DEFAULT 0 COMMENT  '还款状态. 0:待还款, 1:正常还款, 2:提前还款',
+    `estimated_repayment_date` DATE COMMENT '预测还款日期',
     `estimated_repayment_principal` BIGINT (20) COMMENT '预测还款本金，以分计算',
     `estimated_repayment_interest` BIGINT (20) COMMENT '预测还款利息，以分计算',
     `estimated_repayment_amount` BIGINT (20) COMMENT '预测还款总额，以分计算',
@@ -386,22 +400,6 @@ CREATE TABLE
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
     `update_by` VARCHAR(32) COMMENT '信息更新人',
     PRIMARY KEY `pk_fin_existing_repayment_record_id` (`id`)
-  );
-
--- 存量融资放款与还本付息计划关系
-DROP TABLE IF EXISTS `fin_existing_disbursement_repayment_plan_rel`;
-
-CREATE TABLE
-  `fin_existing_disbursement_repayment_plan_rel` (
-    `id` BIGINT(20) NOT NULL COMMENT '融资放款与还本付息计划关系 ID',
-    `existing_id` BIGINT(20) COMMENT '存量融资 ID',
-    `disbursement_id` BIGINT(20) COMMENT '融资放款 ID',
-    `repayment_plan_id` BIGINT(20) COMMENT '还本付息计划 ID',
-    `is_valid` TINYINT(1) DEFAULT 0 COMMENT '是否作废.0:否, 1:是',
-    `invalid_comment` VARCHAR(512) COMMENT '作废原因',
-    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '信息更新时间',
-    `update_by` VARCHAR(32) COMMENT '信息更新人',
-    PRIMARY KEY `pk_fin_existing_disbursement_repayment_plan_rel_id` (`id`)
   );
 
 -- 存量融资担保记录
