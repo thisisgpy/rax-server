@@ -16,6 +16,7 @@ import { RoleModule } from './modules/role/role.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { AssetFixedModule } from './modules/assetFixed/assetFixed.module';
 import { AttachmentModule } from './modules/attachment/attachment.module';
+import { FinExistingModule } from './modules/finExisting/finExisting.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AttachmentModule } from './modules/attachment/attachment.module';
     PermissionModule,
     AssetFixedModule,
     AttachmentModule,
+    FinExistingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
